@@ -215,10 +215,31 @@ else
 fi
 
 ##
+## Indent
+##
+case "$MESSAGE_LOGLEVEL" in
+	DEBUG)
+		readonly INDENT="  "
+		;;
+	INFO)
+		readonly INDENT="   "
+		;;
+	WARNING)
+		readonly INDENT=""
+		;;
+	ERROR)
+		readonly INDENT="  "
+		;;
+	*)
+		readonly INDENT=""
+		;;
+esac
+
+##
 ## Write message to output
 ##
 if $WRITE_MESSAGE; then
-	echo -e "$MESSAGE_COLOR$TIMESTAMP[$MESSAGE_LOGLEVEL] $MESSAGE_TEXT$DEFAULT_COLOR"
+	echo -e "$MESSAGE_COLOR$TIMESTAMP[$MESSAGE_LOGLEVEL]$INDENT $MESSAGE_TEXT$DEFAULT_COLOR"
 fi
 
 ##
