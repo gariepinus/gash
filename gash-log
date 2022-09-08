@@ -66,10 +66,11 @@ arguments
 )
 
 readonly OPTIONS=$( cat << options
-\t-c (color)     ........ Produce colored output.
+\t-o (options) OPTIONS... Options for echo (default: ´-e´).
+\t-c (color) ............ Produce colored output.
 \t-t (timestamp) ........ Include timestamp in output.
-\t-V (version)   ........ Print version and exit.
-\t-h (help)      ........ Print help and exit.
+\t-V (version) .......... Print version and exit.
+\t-h (help) ............. Print help and exit.
 options
 )
 
@@ -107,17 +108,21 @@ help
 )
 
 ##
-## Enviroment variables
+## Enviroment variables & defaults
 ##
 [[ -z "$GASHOPT_LOGLEVEL" ]] && readonly GASHOPT_LOGLEVEL="INFO"
 [[ -z "$GASHOPT_TIMESTAMP" ]] && GASHOPT_TIMESTAMP=false
 [[ -z "$GASHOPT_COLOR" ]] && GASHOPT_COLOR=false
+ECHO_OPTIONS="-e"
 
 ##
 ## Options
 ##
-while getopts "ctVh" opt; do
+while getopts "o:ctVh" opt; do
 	case "$opt" in
+		o)
+			readonly ECHO_OPTIONS="$OPTARG"
+			;;
 		c)
 			readonly GASHOPT_COLOR=true
 			;;
@@ -230,7 +235,7 @@ esac
 ## Write message to output
 ##
 if $WRITE_MESSAGE; then
-	echo -e "$MESSAGE_COLOR$TIMESTAMP[$MESSAGE_LOGLEVEL]$INDENT$MESSAGE_TEXT$DEFAULT_COLOR"
+	echo $ECHO_OPTIONS "$MESSAGE_COLOR$TIMESTAMP[$MESSAGE_LOGLEVEL]$INDENT$MESSAGE_TEXT$DEFAULT_COLOR"
 fi
 
 ##
