@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Print a nicely formatted message.
+# Write a formatted message to output.
 
 #######################################
 # Get numerical value for log level.
@@ -53,21 +53,52 @@ readonly NAME="$(basename $0)"
 readonly VERSION="0.1"
 readonly USAGE="$NAME [options] MESSAGE_LOGLEVEL MESSAGE_TEXT"
 readonly HINT="-h for help"
-readonly DESCRIPTION="help message"
+readonly DESCRIPTION="Write formatted message to output."
+
+readonly ARGUMENTS=$( cat << arguments
+\tMESSAGE_LOGLEVEL ............. DEBUG|INFO|WARNING|ERROR
+\t                               Message will only be written to output
+\t                               if enviroment variable GASHOPT_LOGLEVEL
+\t                               contains equal or lower level (will
+\t                               default to INFO if not set).
+\tMESSAGE_TEXT     ............. Content of the message you want to write.
+arguments
+)
 
 readonly OPTIONS=$( cat << options
-\t-t (timestamp) .......... Include timestamp in output.
-\t-V (version)   .......... Print version and exit.
-\t-h (help)      .......... Print help and exit.
+\t-t (timestamp) ............... Include timestamp in output.
+\t-V (version)   ............... Print version and exit.
+\t-h (help)      ............... Print help and exit.
 options
 )
 
+readonly ENVIROMENT_VARIABLES=$( cat << enviroment_variables
+\tGASHOPT_LOGLEVEL ............. DEBUG|INFO|WARNING|ERROR (default: DEBUG)
+\t                               Message will only be written to output if cli
+\t                               argument MESSAGE_LEVEL is a higher or equal
+\t                               level.
+\tGASHOPT_INCLUDE_TIMESTAMP .... true|false (default: true)
+\t                               Include iso 8601 timestamp in output. Can be
+\t                               overwritten by ´-t´ option.
+enviroment_variables
+)
+
 readonly HELP=$( cat << help
+$NAME/$VERSION
+
 $DESCRIPTION
+
 Usage:
 \t$USAGE
+
+Arguments:
+$ARGUMENTS
+
 Options:
 $OPTIONS
+
+Enviroment variables:
+$ENVIROMENT_VARIABLES
 help
 )
 
