@@ -34,12 +34,25 @@ function level_to_num() {
 	esac
 }
 
+#######################################
+# Write usage info to stderr and exit
+# with 1.
+# Outputs:
+#  Usage info and help hint
+#######################################
+function info_and_exit() {
+	echo -e "Usage: $USAGE"
+	echo -e "       $HINT"
+	exit 1
+}
+
 ##
 ## Constants
 ##
 readonly NAME="$(basename $0)"
 readonly VERSION="0.1"
-readonly USAGE="usage info"
+readonly USAGE="$NAME [options] MESSAGE_LOGLEVEL MESSAGE_TEXT"
+readonly HINT="-h for help"
 readonly DESCRIPTION="help message"
 readonly OPTIONS="options"
 
@@ -47,12 +60,16 @@ readonly OPTIONS="options"
 ## Enviroment variables
 ##
 [[ -z "$GASHOPT_LOGLEVEL" ]] && readonly GASHOPT_LOGLEVEL="INFO"
+[[ -z "$GASHOPT_INCLUDE_TIMESTAMP" ]] && GASHOPT_INCLUDE_TIMESTAMP=false
 
 ##
 ## Options
 ##
-while getopts "Vh" opt; do
-	case "${opt}" in
+while getopts "tVh" opt; do
+	case "$opt" in
+		t)
+			readonly GASHOPT_INCLUDE_TIMESTAMP=true
+			;;
 		V)
 			echo -e "$VERSION"
 			exit 0
@@ -62,7 +79,7 @@ while getopts "Vh" opt; do
 			exit 0
 			;;
 		*)
-			echo -e "$USAGE"
+			info_and_exit
 			;;
 	esac
 done
@@ -75,8 +92,7 @@ shift $((OPTIND-1))
 ##
 if [[ $# -ne 2 ]]; then
 	echo -e "$0: Wrong number of arguments." 1>&2
-	echo -e "$USAGE"
-	exit 1
+	info_and_exit
 fi
 
 readonly MESSAGE_LOGLEVEL="$1"
@@ -90,11 +106,12 @@ readonly MESSAGE_LOGLEVEL_NUM="$(level_to_num $MESSAGE_LOGLEVEL)"
 
 if [[ "$GASHOPT_LOGLEVEL_NUM" -eq -1 ]]; then
 	echo "$0: Invalid loglevel ´$GASHOPT_LOGLEVEL´ set by eviroment variable GASHOPT_LOGLEVEL." 1>&2
-	exit 1
+	info_and_exit
 fi
+
 if [[ "$MESSAGE_LOGLEVEL_NUM" -eq -1 ]]; then
 	echo "$0: Invalid loglevel ´$MESSAGE_LOGLEVEL´ set by cli argument MESSAGE_LOGLEVEL." 1>&2
-	exit 1
+	info_and_exit
 fi
 
 if [[ "$MESSAGE_LOGLEVEL_NUM" -ge "$GASHOPT_LOGLEVEL_NUM" ]]; then
@@ -108,10 +125,19 @@ else
 fi
 
 ##
+## Timestamp
+##
+if $GASHOPT_INCLUDE_TIMESTAMP; then
+	readonly TIMESTAMP="$(date --iso-8601=s) "
+else
+	readonly TIMESTAMP=""
+fi
+
+##
 ## Write message to output
 ##
 if $WRITE_MESSAGE; then
-	echo -e "$MESSAGE_LOGLEVEL: $MESSAGE_TEXT"
+	echo -e "$TIMESTAMP[$MESSAGE_LOGLEVEL] $MESSAGE_TEXT"
 fi
 
 ##
