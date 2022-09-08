@@ -61,11 +61,12 @@ readonly ARGUMENTS=$( cat << arguments
 \t                               if enviroment variable GASHOPT_LOGLEVEL
 \t                               contains equal or lower level (will
 \t                               default to INFO if not set).
-\tMESSAGE_TEXT     ............. Content of the message you want to write.
+\tMESSAGE_TEXT ................. Content of the message you want to write.
 arguments
 )
 
 readonly OPTIONS=$( cat << options
+\t-c (color)     ............... Produce colored output.
 \t-t (timestamp) ............... Include timestamp in output.
 \t-V (version)   ............... Print version and exit.
 \t-h (help)      ............... Print help and exit.
@@ -77,9 +78,12 @@ readonly ENVIROMENT_VARIABLES=$( cat << enviroment_variables
 \t                               Message will only be written to output if cli
 \t                               argument MESSAGE_LEVEL is a higher or equal
 \t                               level.
-\tGASHOPT_INCLUDE_TIMESTAMP .... true|false (default: true)
+\tGASHOPT_INCLUDE_TIMESTAMP .... true|false (default: false)
 \t                               Include iso 8601 timestamp in output. Can be
 \t                               overwritten by ´-t´ option.
+\tGASHOPT_COLOR .................true|false (default: false)
+\t                               Produce colored output. Can be overwritten
+\t                               by ´-c´ option.
 enviroment_variables
 )
 
@@ -107,12 +111,16 @@ help
 ##
 [[ -z "$GASHOPT_LOGLEVEL" ]] && readonly GASHOPT_LOGLEVEL="INFO"
 [[ -z "$GASHOPT_INCLUDE_TIMESTAMP" ]] && GASHOPT_INCLUDE_TIMESTAMP=false
+[[ -z "$GASHOPT_COLOR" ]] && GASHOPT_COLOR=false
 
 ##
 ## Options
 ##
-while getopts "tVh" opt; do
+while getopts "ctVh" opt; do
 	case "$opt" in
+		c)
+			readonly GASHOPT_COLOR=true
+			;;
 		t)
 			readonly GASHOPT_INCLUDE_TIMESTAMP=true
 			;;
@@ -180,10 +188,37 @@ else
 fi
 
 ##
+## Color
+##
+if $GASHOPT_COLOR;then
+	case "$MESSAGE_LOGLEVEL" in
+		DEBUG)
+			readonly MESSAGE_COLOR="\e[2m" #Dim
+			;;
+		INFO)
+			readonly MESSAGE_COLOR="\e[94m" #Light blue
+			;;
+		WARNING)
+			readonly MESSAGE_COLOR="\e[93m" #Light yellow
+			;;
+		ERROR)
+			readonly MESSAGE_COLOR="\e[91m" #Light red
+			;;
+		*)
+			readonly MESSAGE_COLOR=""
+			;;
+	esac
+	readonly DEFAULT_COLOR="\e[39m\e[0m"
+else
+	readonly MESSAGE_COLOR=""
+	readonly DEFAULT_COLOR=""
+fi
+
+##
 ## Write message to output
 ##
 if $WRITE_MESSAGE; then
-	echo -e "$TIMESTAMP[$MESSAGE_LOGLEVEL] $MESSAGE_TEXT"
+	echo -e "$MESSAGE_COLOR$TIMESTAMP[$MESSAGE_LOGLEVEL] $MESSAGE_TEXT$DEFAULT_COLOR"
 fi
 
 ##
