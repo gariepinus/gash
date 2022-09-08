@@ -1,0 +1,117 @@
+#!/bin/bash
+#
+# Execute command.
+
+#######################################
+# Write usage info to stderr and exit
+# with 1.
+# Outputs:
+#  Usage info and help hint
+#######################################
+function info_and_exit() {
+	echo -e "Usage: $USAGE"
+	echo -e "       $HINT"
+	exit 1
+}
+
+##
+## Constants
+##
+readonly NAME="$(basename $0)"
+readonly VERSION="0.1"
+readonly USAGE="$NAME [options] COMMAND MESSAGE"
+readonly HINT="-h for help"
+readonly DESCRIPTION="Execude command."
+
+readonly ARGUMENTS=$( cat << arguments
+\tCOMMAND .......... Command to be executed.
+\tMESSAGE .......... Description of what COMMAND is doing.
+arguments
+)
+
+readonly OPTIONS=$( cat << options
+\t-c (color)     ........ Produce colored output.
+\t-t (timestamp) ........ Include timestamp in output.
+\t-V (version)   ........ Print version and exit.
+\t-h (help)      ........ Print help and exit.
+options
+)
+
+readonly ENVIROMENT_VARIABLES=$( cat << enviroment_variables
+\tGASHOPT_TIMESTAMP ..... true|false (default: false)
+\t                        Include iso 8601 timestamp in output. Can be
+\t                        overwritten by ´-t´ option.
+\tGASHOPT_COLOR ......... true|false (default: false)
+\t                        Produce colored output. Can be overwritten
+\t                        by ´-c´ option.
+enviroment_variables
+)
+
+readonly HELP=$( cat << help
+$NAME/v$VERSION
+
+$DESCRIPTION
+
+Usage:
+\t$USAGE
+
+Arguments:
+$ARGUMENTS
+
+Options:
+$OPTIONS
+
+Enviroment variables:
+$ENVIROMENT_VARIABLES
+help
+)
+
+##
+## Enviroment variables
+##
+[[ -z "$GASHOPT_TIMESTAMP" ]] && GASHOPT_TIMESTAMP=false
+[[ -z "$GASHOPT_COLOR" ]] && GASHOPT_COLOR=false
+
+##
+## Options
+##
+while getopts "ctVh" opt; do
+	case "$opt" in
+		c)
+			export GASHOPT_COLOR=true
+			;;
+		t)
+			export GASHOPT_TIMESTAMP=true
+			;;
+		V)
+			echo -e "$VERSION"
+			exit 0
+			;;
+		h)
+			echo -e "$HELP"
+			exit 0
+			;;
+		*)
+			info_and_exit
+			;;
+	esac
+done
+
+# Remove options from $@
+shift $((OPTIND-1))
+
+##
+## Arguments
+##
+if [[ $# -ne 2 ]]; then
+	echo -e "$0: Wrong number of arguments." 1>&2
+	info_and_exit
+fi
+
+readonly COMMAND="$1"
+readonly MESSAGE="$2"
+
+##
+## Done
+##
+exit 0
