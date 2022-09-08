@@ -30,6 +30,8 @@ arguments
 )
 
 readonly OPTIONS=$( cat << options
+\t-v (verbose)   ........ More output.
+\t-d (dry-run)   ........ Do not actually execute.
 \t-c (color)     ........ Produce colored output.
 \t-t (timestamp) ........ Include timestamp in output.
 \t-V (version)   ........ Print version and exit.
@@ -44,6 +46,12 @@ readonly ENVIROMENT_VARIABLES=$( cat << enviroment_variables
 \tGASHOPT_COLOR ......... true|false (default: false)
 \t                        Produce colored output. Can be overwritten
 \t                        by ´-c´ option.
+\tGASHOPT_DRYRUN ........ true|false (default: false)
+\t                        Don't execute given command. Can be
+\t                        overwritten by ´-d´ option.
+\tGASHOPT_VERBOSE ....... true|false (default: false)
+\t                        Produce more output. Can be overwritten by
+\t                        ´-v´ option.
 enviroment_variables
 )
 
@@ -71,12 +79,20 @@ help
 ##
 [[ -z "$GASHOPT_TIMESTAMP" ]] && GASHOPT_TIMESTAMP=false
 [[ -z "$GASHOPT_COLOR" ]] && GASHOPT_COLOR=false
+[[ -z "$GASHOPT_DRYRUN" ]] && GASHOPT_DRYRUN=false
+[[ -z "$GASHOPT_VERBOSE" ]] && GASHOPT_VERBOSE=false
 
 ##
 ## Options
 ##
-while getopts "ctVh" opt; do
+while getopts "vdctVh" opt; do
 	case "$opt" in
+		v)
+			readonly GASHOPT_VERBOSE=true
+			;;
+		d)
+			readonly GASHOPT_DRYRUN=true
+			;;
 		c)
 			export GASHOPT_COLOR=true
 			;;
@@ -110,6 +126,15 @@ fi
 
 readonly COMMAND="$1"
 readonly MESSAGE="$2"
+
+##
+## Output
+##
+gash-log -o "-en" "INFO" "$MESSAGE..."
+
+if [[ $GASHOPT_VERBOSE || $GASHOPT_DRYRUN ]]; then
+	echo -e "\n>> $COMMAND"
+fi
 
 ##
 ## Done
