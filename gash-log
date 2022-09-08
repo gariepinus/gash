@@ -54,7 +54,22 @@ readonly VERSION="0.1"
 readonly USAGE="$NAME [options] MESSAGE_LOGLEVEL MESSAGE_TEXT"
 readonly HINT="-h for help"
 readonly DESCRIPTION="help message"
-readonly OPTIONS="options"
+
+readonly OPTIONS=$( cat << options
+\t-t (timestamp) .......... Include timestamp in output.
+\t-V (version)   .......... Print version and exit.
+\t-h (help)      .......... Print help and exit.
+options
+)
+
+readonly HELP=$( cat << help
+$DESCRIPTION
+Usage:
+\t$USAGE
+Options:
+$OPTIONS
+help
+)
 
 ##
 ## Enviroment variables
