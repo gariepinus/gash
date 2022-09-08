@@ -50,7 +50,7 @@ function info_and_exit() {
 ## Constants
 ##
 readonly NAME="$(basename $0)"
-readonly VERSION="0.1"
+readonly VERSION="1.0"
 readonly USAGE="$NAME [options] MESSAGE_LOGLEVEL MESSAGE_TEXT"
 readonly HINT="-h for help"
 readonly DESCRIPTION="Write formatted message to output."
