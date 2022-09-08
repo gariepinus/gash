@@ -10,7 +10,7 @@
 #   Writes numerical value to stoud
 #   DEBUG   => 0
 #   INFO    => 1
-#   WARNING => 2
+#   WARN => 2
 #   ERROR   => 3
 #   -1 for anyting else (unkown level)
 #######################################
@@ -22,7 +22,7 @@ function level_to_num() {
 		INFO)
 			echo "1"
 			;;
-		WARNING)
+		WARN)
 			echo "2"
 			;;
 		ERROR)
@@ -56,7 +56,7 @@ readonly HINT="-h for help"
 readonly DESCRIPTION="Write formatted message to output."
 
 readonly ARGUMENTS=$( cat << arguments
-\tMESSAGE_LOGLEVEL ............. DEBUG|INFO|WARNING|ERROR
+\tMESSAGE_LOGLEVEL ............. DEBUG|INFO|WARN|ERROR
 \t                               Message will only be written to output
 \t                               if enviroment variable GASHOPT_LOGLEVEL
 \t                               contains equal or lower level (will
@@ -74,7 +74,7 @@ options
 )
 
 readonly ENVIROMENT_VARIABLES=$( cat << enviroment_variables
-\tGASHOPT_LOGLEVEL ............. DEBUG|INFO|WARNING|ERROR (default: DEBUG)
+\tGASHOPT_LOGLEVEL ............. DEBUG|INFO|WARN|ERROR (default: DEBUG)
 \t                               Message will only be written to output if cli
 \t                               argument MESSAGE_LEVEL is a higher or equal
 \t                               level.
@@ -198,7 +198,7 @@ if $GASHOPT_COLOR;then
 		INFO)
 			readonly MESSAGE_COLOR="\e[94m" #Light blue
 			;;
-		WARNING)
+		WARN)
 			readonly MESSAGE_COLOR="\e[93m" #Light yellow
 			;;
 		ERROR)
@@ -218,20 +218,11 @@ fi
 ## Indent
 ##
 case "$MESSAGE_LOGLEVEL" in
-	DEBUG)
+	INFO|WARN)
 		readonly INDENT="  "
 		;;
-	INFO)
-		readonly INDENT="   "
-		;;
-	WARNING)
-		readonly INDENT=""
-		;;
-	ERROR)
-		readonly INDENT="  "
-		;;
-	*)
-		readonly INDENT=""
+	ERROR|DEBUG|*)
+		readonly INDENT=" "
 		;;
 esac
 
@@ -239,7 +230,7 @@ esac
 ## Write message to output
 ##
 if $WRITE_MESSAGE; then
-	echo -e "$MESSAGE_COLOR$TIMESTAMP[$MESSAGE_LOGLEVEL]$INDENT $MESSAGE_TEXT$DEFAULT_COLOR"
+	echo -e "$MESSAGE_COLOR$TIMESTAMP[$MESSAGE_LOGLEVEL]$INDENT$MESSAGE_TEXT$DEFAULT_COLOR"
 fi
 
 ##
