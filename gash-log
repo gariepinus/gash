@@ -1,0 +1,120 @@
+#!/bin/bash
+#
+# Print a nicely formatted message.
+
+#######################################
+# Get numerical value for log level.
+# Arguments:
+#   log level
+# Outputs:
+#   Writes numerical value to stoud
+#   DEBUG   => 0
+#   INFO    => 1
+#   WARNING => 2
+#   ERROR   => 3
+#   -1 for anyting else (unkown level)
+#######################################
+function level_to_num() {
+	case $1 in
+		DEBUG)
+			echo "0"
+			;;
+		INFO)
+			echo "1"
+			;;
+		WARNING)
+			echo "2"
+			;;
+		ERROR)
+			echo "3"
+			;;
+		*)
+			echo "-1"
+			;;
+	esac
+}
+
+##
+## Constants
+##
+readonly NAME="$(basename $0)"
+readonly VERSION="0.1"
+readonly USAGE="usage info"
+readonly DESCRIPTION="help message"
+readonly OPTIONS="options"
+
+##
+## Enviroment variables
+##
+[[ -z "$GASHOPT_LOGLEVEL" ]] && readonly GASHOPT_LOGLEVEL="INFO"
+
+##
+## Options
+##
+while getopts "Vh" opt; do
+	case "${opt}" in
+		V)
+			echo -e "$VERSION"
+			exit 0
+			;;
+		h)
+			echo -e "$HELP"
+			exit 0
+			;;
+		*)
+			echo -e "$USAGE"
+			;;
+	esac
+done
+
+# Remove options from $@
+shift $((OPTIND-1))
+
+##
+## Arguments
+##
+if [[ $# -ne 2 ]]; then
+	echo -e "$0: Wrong number of arguments." 1>&2
+	echo -e "$USAGE"
+	exit 1
+fi
+
+readonly MESSAGE_LOGLEVEL="$1"
+readonly MESSAGE_TEXT="$2"
+
+##
+## Log levels
+##
+readonly GASHOPT_LOGLEVEL_NUM="$(level_to_num $GASHOPT_LOGLEVEL)" 
+readonly MESSAGE_LOGLEVEL_NUM="$(level_to_num $MESSAGE_LOGLEVEL)"
+
+if [[ "$GASHOPT_LOGLEVEL_NUM" -eq -1 ]]; then
+	echo "$0: Invalid loglevel ´$GASHOPT_LOGLEVEL´ set by eviroment variable GASHOPT_LOGLEVEL." 1>&2
+	exit 1
+fi
+if [[ "$MESSAGE_LOGLEVEL_NUM" -eq -1 ]]; then
+	echo "$0: Invalid loglevel ´$MESSAGE_LOGLEVEL´ set by cli argument MESSAGE_LOGLEVEL." 1>&2
+	exit 1
+fi
+
+if [[ "$MESSAGE_LOGLEVEL_NUM" -ge "$GASHOPT_LOGLEVEL_NUM" ]]; then
+	# Log level for message is greater or equal to gashopt log level. So we actually want
+	# to write the message to output (e.g. message is ERROR and gashopt is set to INFO).
+	readonly WRITE_MESSAGE=true
+else
+	# Log level for message is smaller than gashopt log level. The message will not be
+	# written (e.g. message is INFO and gashopt is set to WARN).
+	readonly WRITE_MESSAGE=false
+fi
+
+##
+## Write message to output
+##
+if $WRITE_MESSAGE; then
+	echo -e "$MESSAGE_LOGLEVEL: $MESSAGE_TEXT"
+fi
+
+##
+## Done
+##
+exit 0
