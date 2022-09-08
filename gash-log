@@ -56,39 +56,39 @@ readonly HINT="-h for help"
 readonly DESCRIPTION="Write formatted message to output."
 
 readonly ARGUMENTS=$( cat << arguments
-\tMESSAGE_LOGLEVEL ............. DEBUG|INFO|WARN|ERROR
-\t                               Message will only be written to output
-\t                               if enviroment variable GASHOPT_LOGLEVEL
-\t                               contains equal or lower level (will
-\t                               default to INFO if not set).
-\tMESSAGE_TEXT ................. Content of the message you want to write.
+\tMESSAGE_LOGLEVEL ...... DEBUG|INFO|WARN|ERROR
+\t                        Message will only be written to output
+\t                        if enviroment variable GASHOPT_LOGLEVEL
+\t                        contains equal or lower level (will
+\t                        default to INFO if not set).
+\tMESSAGE_TEXT .......... Content of the message you want to write.
 arguments
 )
 
 readonly OPTIONS=$( cat << options
-\t-c (color)     ............... Produce colored output.
-\t-t (timestamp) ............... Include timestamp in output.
-\t-V (version)   ............... Print version and exit.
-\t-h (help)      ............... Print help and exit.
+\t-c (color)     ........ Produce colored output.
+\t-t (timestamp) ........ Include timestamp in output.
+\t-V (version)   ........ Print version and exit.
+\t-h (help)      ........ Print help and exit.
 options
 )
 
 readonly ENVIROMENT_VARIABLES=$( cat << enviroment_variables
-\tGASHOPT_LOGLEVEL ............. DEBUG|INFO|WARN|ERROR (default: DEBUG)
-\t                               Message will only be written to output if cli
-\t                               argument MESSAGE_LEVEL is a higher or equal
-\t                               level.
-\tGASHOPT_INCLUDE_TIMESTAMP .... true|false (default: false)
-\t                               Include iso 8601 timestamp in output. Can be
-\t                               overwritten by ´-t´ option.
-\tGASHOPT_COLOR .................true|false (default: false)
-\t                               Produce colored output. Can be overwritten
-\t                               by ´-c´ option.
+\tGASHOPT_LOGLEVEL ...... DEBUG|INFO|WARN|ERROR (default: DEBUG)
+\t                        Message will only be written to output if cli
+\t                        argument MESSAGE_LEVEL is a higher or equal
+\t                        level.
+\tGASHOPT_TIMESTAMP ..... true|false (default: false)
+\t                        Include iso 8601 timestamp in output. Can be
+\t                        overwritten by ´-t´ option.
+\tGASHOPT_COLOR ......... true|false (default: false)
+\t                        Produce colored output. Can be overwritten
+\t                        by ´-c´ option.
 enviroment_variables
 )
 
 readonly HELP=$( cat << help
-$NAME/$VERSION
+$NAME/v$VERSION
 
 $DESCRIPTION
 
@@ -110,7 +110,7 @@ help
 ## Enviroment variables
 ##
 [[ -z "$GASHOPT_LOGLEVEL" ]] && readonly GASHOPT_LOGLEVEL="INFO"
-[[ -z "$GASHOPT_INCLUDE_TIMESTAMP" ]] && GASHOPT_INCLUDE_TIMESTAMP=false
+[[ -z "$GASHOPT_TIMESTAMP" ]] && GASHOPT_TIMESTAMP=false
 [[ -z "$GASHOPT_COLOR" ]] && GASHOPT_COLOR=false
 
 ##
@@ -122,7 +122,7 @@ while getopts "ctVh" opt; do
 			readonly GASHOPT_COLOR=true
 			;;
 		t)
-			readonly GASHOPT_INCLUDE_TIMESTAMP=true
+			readonly GASHOPT_TIMESTAMP=true
 			;;
 		V)
 			echo -e "$VERSION"
@@ -181,7 +181,7 @@ fi
 ##
 ## Timestamp
 ##
-if $GASHOPT_INCLUDE_TIMESTAMP; then
+if $GASHOPT_TIMESTAMP; then
 	readonly TIMESTAMP="$(date --iso-8601=s) "
 else
 	readonly TIMESTAMP=""
