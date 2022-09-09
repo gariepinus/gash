@@ -75,12 +75,13 @@ help
 )
 
 ##
-## Enviroment variables
+## Enviroment variables & defaults
 ##
 [[ -z "$GASHOPT_TIMESTAMP" ]] && GASHOPT_TIMESTAMP=false
 [[ -z "$GASHOPT_COLOR" ]] && GASHOPT_COLOR=false
 [[ -z "$GASHOPT_DRYRUN" ]] && GASHOPT_DRYRUN=false
 [[ -z "$GASHOPT_VERBOSE" ]] && GASHOPT_VERBOSE=false
+MESSAGE_LEVEL="INFO"
 
 ##
 ## Options
@@ -130,10 +131,10 @@ readonly MESSAGE="$2"
 ##
 ## Output
 ##
-gash-log -o "-en" "INFO" "$MESSAGE... " 1>&2
+gash-log -o "-en" "$MESSAGE_LEVEL" "$MESSAGE... " 1>&2
 
 if $GASHOPT_VERBOSE ; then
-	echo -e "\n>>> $COMMAND" 1>&2
+	gash-log -s "$MESSAGE_LEVEL" "\n>>> $COMMAND" 1>&2
 fi
 
 ##
@@ -150,16 +151,16 @@ fi
 ## Result
 ##
 if $GASHOPT_VERBOSE; then
-	echo -e "$OUTPUT" 1>&2
-	echo -en "<<< " 1>&2
+	gash-log -s "$MESSAGE_LEVEL" "$OUTPUT" 1>&2
+	gash-log -s -o "-en" "$MESSAGE_LEVEL" "<<< " 1>&2
 fi
 
 if $GASHOPT_DRYRUN; then
-	echo -e "(Dry run)" 1>&2
+	gash-log -s "$MESSAGE_LEVEL" "(Dry run)" 1>&2
 elif [[ $RESULT -eq 0 ]]; then
-	echo -e "(Ok)" 1>&2
+	gash-log -s "$MESSAGE_LEVEL" "(Ok)" 1>&2
 else
-	echo -e "(Failed)" 1>&2
+	gasl-log -s "$MESSAGE_LEVEL" "(Failed)" 1>&2
 fi
 
 ##
