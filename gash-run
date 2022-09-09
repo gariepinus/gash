@@ -36,12 +36,13 @@ arguments
 )
 
 readonly OPTIONS=$( cat << options
+\t-o (output) ........... Write command output to stdout.
 \t-l (level) LEVEL ...... Message level used for gash-log
 \t                        (default: ´INFO´).
-\t-v (verbose) .......... More output.
+\t-v (verbose) .......... Write more information to stderr.
 \t-d (dry-run) .......... Do not actually execute.
-\t-c (color) ............ Produce colored output.
-\t-t (timestamp) ........ Include timestamp in output.
+\t-c (color) ............ Produce colored status information.
+\t-t (timestamp) ........ Include timestamp in status information.
 \t-V (version) .......... Print version and exit.
 \t-h (help) ............. Print help and exit.
 options
@@ -90,12 +91,16 @@ help
 [[ -z "$GASHOPT_DRYRUN" ]] && GASHOPT_DRYRUN=false
 [[ -z "$GASHOPT_VERBOSE" ]] && GASHOPT_VERBOSE=false
 MESSAGE_LEVEL="INFO"
+PRINT_OUTPUT=false
 
 ##
 ## Options
 ##
-while getopts "l:vdctVh" opt; do
+while getopts "ol:vdctVh" opt; do
 	case "$opt" in
+		o)
+			readonly PRINT_OUTPUT=true
+			;;
 		l)
 			readonly MESSAGE_LEVEL="$OPTARG"
 			;;
@@ -196,4 +201,7 @@ fi
 ##
 ## Done
 ##
+if $PRINT_OUTPUT; then
+	echo -e $OUTPUT
+fi
 exit $RESULT
