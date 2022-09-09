@@ -179,9 +179,15 @@ fi
 if $GASHOPT_DRYRUN; then
 	RESULT=0
 else
-	# Capture output and return value of command.
-	OUTPUT="$($COMMAND 2>&1)"
-	RESULT=$?
+	if $GASHOPT_VERBOSE; then
+		# Capture stdout, let stderr through
+		OUTPUT="$($COMMAND)"
+		RESULT=$?
+	else
+		# Capture stdout, discard stderr 
+		OUTPUT="$($COMMAND 2>/dev/null)"
+		RESULT=$?
+	fi
 fi
 
 ##
