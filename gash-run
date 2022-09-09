@@ -168,6 +168,7 @@ fi
 ##
 gash-log -o "-en" "$MESSAGE_LEVEL" "$MESSAGE... " 1>&2
 
+# Write the command you are about to execute to stderr if verbose.
 if $GASHOPT_VERBOSE ; then
 	gash-log -s "$MESSAGE_LEVEL" "\n$CYAN>>> $MAGENTA$COMMAND$RESET" 1>&2
 fi
@@ -178,6 +179,7 @@ fi
 if $GASHOPT_DRYRUN; then
 	RESULT=0
 else
+	# Capture output and return value of command.
 	OUTPUT="$($COMMAND 2>&1)"
 	RESULT=$?
 fi
@@ -186,10 +188,12 @@ fi
 ## Result
 ##
 if $GASHOPT_VERBOSE; then
+	# Include the actual command output in stderr.
 	gash-log -s "$MESSAGE_LEVEL" "$OUTPUT" 1>&2
 	gash-log -s -o "-en" "$MESSAGE_LEVEL" "$CYAN<<<$RESET " 1>&2
 fi
 
+# Write information about execution result to stderr.
 if $GASHOPT_DRYRUN; then
 	gash-log -s "$MESSAGE_LEVEL" "$YELLOW(Dry run)$RESET" 1>&2
 elif [[ $RESULT -eq 0 ]]; then
