@@ -66,6 +66,8 @@ arguments
 )
 
 readonly OPTIONS=$( cat << options
+\t-s (simple) ........... Only output MESSAGE_TEXT (overwrites
+\t                        ´-c´ and ´-t´)
 \t-o (options) OPTIONS... Options for echo (default: ´-e´).
 \t-c (color) ............ Produce colored output.
 \t-t (timestamp) ........ Include timestamp in output.
@@ -81,10 +83,10 @@ readonly ENVIROMENT_VARIABLES=$( cat << enviroment_variables
 \t                        level.
 \tGASHOPT_TIMESTAMP ..... true|false (default: false)
 \t                        Include iso 8601 timestamp in output. Can be
-\t                        overwritten by ´-t´ option.
+\t                        overwritten by ´-t´ and ´-s´ option.
 \tGASHOPT_COLOR ......... true|false (default: false)
 \t                        Produce colored output. Can be overwritten
-\t                        by ´-c´ option.
+\t                        by ´-c´ and ´-s´ option.
 enviroment_variables
 )
 
@@ -114,12 +116,16 @@ help
 [[ -z "$GASHOPT_TIMESTAMP" ]] && GASHOPT_TIMESTAMP=false
 [[ -z "$GASHOPT_COLOR" ]] && GASHOPT_COLOR=false
 ECHO_OPTIONS="-e"
+SIMPLE_OUTPUT=false
 
 ##
 ## Options
 ##
-while getopts "o:ctVh" opt; do
+while getopts "so:ctVh" opt; do
 	case "$opt" in
+		s)
+			readonly SIMPLE_OUTPUT=true
+			;;
 		o)
 			readonly ECHO_OPTIONS="$OPTARG"
 			;;
@@ -235,7 +241,11 @@ esac
 ## Write message to output
 ##
 if $WRITE_MESSAGE; then
-	echo $ECHO_OPTIONS "$MESSAGE_COLOR$TIMESTAMP[$MESSAGE_LOGLEVEL]$INDENT$MESSAGE_TEXT$DEFAULT_COLOR"
+	if $SIMPLE_OUTPUT; then
+		echo "$ECHO_OPTIONS" "$MESSAGE_TEXT"
+	else
+		echo "$ECHO_OPTIONS" "$MESSAGE_COLOR$TIMESTAMP[$MESSAGE_LOGLEVEL]$INDENT$MESSAGE_TEXT$DEFAULT_COLOR"
+	fi
 fi
 
 ##
