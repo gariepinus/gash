@@ -1,6 +1,7 @@
 #!/bin/bash
 #
-# Execute command.
+# Execute command. Use gash-log to write status information
+# to stderr and supress output of command itself.
 
 #######################################
 # Write usage info to stderr and exit
@@ -21,21 +22,28 @@ readonly NAME="$(basename $0)"
 readonly VERSION="0.1"
 readonly USAGE="$NAME [options] COMMAND MESSAGE"
 readonly HINT="-h for help"
-readonly DESCRIPTION="Execude command."
+
+readonly DESCRIPTION=$( cat << description
+Execute command. Use gash-log to write status information
+to stderr and supress output of command itself.
+description
+)
 
 readonly ARGUMENTS=$( cat << arguments
-\tCOMMAND .......... Command to be executed.
-\tMESSAGE .......... Description of what COMMAND is doing.
+\tCOMMAND ............... Command to be executed.
+\tMESSAGE ............... Description of what COMMAND is doing.
 arguments
 )
 
 readonly OPTIONS=$( cat << options
-\t-v (verbose)   ........ More output.
-\t-d (dry-run)   ........ Do not actually execute.
-\t-c (color)     ........ Produce colored output.
+\t-l (level) LEVEL ...... Message level used for gash-log
+\t                        (default: ´INFO´).
+\t-v (verbose) .......... More output.
+\t-d (dry-run) .......... Do not actually execute.
+\t-c (color) ............ Produce colored output.
 \t-t (timestamp) ........ Include timestamp in output.
-\t-V (version)   ........ Print version and exit.
-\t-h (help)      ........ Print help and exit.
+\t-V (version) .......... Print version and exit.
+\t-h (help) ............. Print help and exit.
 options
 )
 
@@ -86,8 +94,11 @@ MESSAGE_LEVEL="INFO"
 ##
 ## Options
 ##
-while getopts "vdctVh" opt; do
+while getopts "l:vdctVh" opt; do
 	case "$opt" in
+		l)
+			readonly MESSAGE_LEVEL="$OPTARG"
+			;;
 		v)
 			readonly GASHOPT_VERBOSE=true
 			;;
