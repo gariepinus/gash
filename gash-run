@@ -129,12 +129,31 @@ readonly COMMAND="$1"
 readonly MESSAGE="$2"
 
 ##
+## Color
+##
+if $GASHOPT_COLOR; then
+	readonly RED="\e[1m\e[91m" # Bold + Light red
+	readonly GREEN="\e[1m\e[92m" # Bold + Light green
+	readonly YELLOW="\e[1m\e[93m" # Bold + Light yellow
+	readonly CYAN="\e[96m" # Light cyan
+	readonly MAGENTA="\e[95m" # Light magenta
+	readonly RESET="\e[39m\e[0m"
+else
+	readonly RED=""
+	readonly GREEN=""
+	readonly YELLOW=""
+	readonly CYAN=""
+	readonly MAGENTA=""
+	readonly RESET=""
+fi
+
+##
 ## Output
 ##
 gash-log -o "-en" "$MESSAGE_LEVEL" "$MESSAGE... " 1>&2
 
 if $GASHOPT_VERBOSE ; then
-	gash-log -s "$MESSAGE_LEVEL" "\n>>> $COMMAND" 1>&2
+	gash-log -s "$MESSAGE_LEVEL" "\n$CYAN>>> $MAGENTA$COMMAND$RESET" 1>&2
 fi
 
 ##
@@ -152,15 +171,15 @@ fi
 ##
 if $GASHOPT_VERBOSE; then
 	gash-log -s "$MESSAGE_LEVEL" "$OUTPUT" 1>&2
-	gash-log -s -o "-en" "$MESSAGE_LEVEL" "<<< " 1>&2
+	gash-log -s -o "-en" "$MESSAGE_LEVEL" "$CYAN<<<$RESET " 1>&2
 fi
 
 if $GASHOPT_DRYRUN; then
-	gash-log -s "$MESSAGE_LEVEL" "(Dry run)" 1>&2
+	gash-log -s "$MESSAGE_LEVEL" "$YELLOW(Dry run)$RESET" 1>&2
 elif [[ $RESULT -eq 0 ]]; then
-	gash-log -s "$MESSAGE_LEVEL" "(Ok)" 1>&2
+	gash-log -s "$MESSAGE_LEVEL" "$GREEN(Ok)$RESET" 1>&2
 else
-	gasl-log -s "$MESSAGE_LEVEL" "(Failed)" 1>&2
+	gash-log -s "$MESSAGE_LEVEL" "$RED(Failed)$RESET" 1>&2
 fi
 
 ##
