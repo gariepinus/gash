@@ -1,7 +1,8 @@
 #!/bin/bash
 #
-# Execute command. Use gash-echo to write status information
-# to stderr and supress output of command itself.
+# Execute command supressing all of its output and
+# use gash-echo to write status information to
+# stderr.
 
 #######################################
 # Write usage info to stderr and exit
@@ -10,8 +11,8 @@
 #  Usage info and help hint
 #######################################
 function info_and_exit() {
-	echo -e "Usage: $USAGE"
-	echo -e "       $HINT"
+	echo -e "Usage: $USAGE" 1>&2
+	echo -e "       $HINT" 1>&2
 	exit 1
 }
 
@@ -19,13 +20,14 @@ function info_and_exit() {
 ## Constants
 ##
 readonly NAME="$(basename $0)"
-readonly VERSION="0.1"
+readonly VERSION="1.0"
 readonly USAGE="$NAME [options] COMMAND MESSAGE"
 readonly HINT="-h for help"
 
 readonly DESCRIPTION=$( cat << description
-Execute command. Use gash-echo to write status information
-to stderr and supress output of command itself.
+Execute command supressing all of its output and
+use gash-echo to write status information to
+stderr.
 description
 )
 
@@ -39,9 +41,11 @@ readonly OPTIONS=$( cat << options
 \t-o (output) ........... Write command output to stdout.
 \t-l (level) LEVEL ...... Message level used for gash-echo
 \t                        (default: ´INFO´).
-\t-v (verbose) .......... Write more information to stderr.
-\t-d (dry-run) .......... Do not actually execute.
-\t-c (color) ............ Produce colored status information.
+\t-v (verbose) .......... Write more information to stderr
+\t                        (command that gets executed, stdout
+\t                        and stderr of command).
+\t-d (dry-run) .......... Do not actually execute command.
+\t-c (color) ............ Write status information with color.
 \t-t (timestamp) ........ Include timestamp in status information.
 \t-V (version) .......... Print version and exit.
 \t-h (help) ............. Print help and exit.
@@ -53,14 +57,15 @@ readonly ENVIROMENT_VARIABLES=$( cat << enviroment_variables
 \t                        Include iso 8601 timestamp in output. Can be
 \t                        overwritten by ´-t´ option.
 \tGASHOPT_COLOR ......... true|false (default: false)
-\t                        Produce colored output. Can be overwritten
-\t                        by ´-c´ option.
+\t                        Write status information with color. Can be
+\t                        overwritten by ´-c´ option.
 \tGASHOPT_DRYRUN ........ true|false (default: false)
-\t                        Don't execute given command. Can be
-\t                        overwritten by ´-d´ option.
+\t                        Don't execute command. Can be overwritten by
+\t                        ´-d´ option.
 \tGASHOPT_VERBOSE ....... true|false (default: false)
-\t                        Produce more output. Can be overwritten by
-\t                        ´-v´ option.
+\t                        Write more information to stderr (command
+\t                        that gets executed, stdout and stderr of
+\t                        command).
 enviroment_variables
 )
 
@@ -90,6 +95,7 @@ help
 [[ -z "$GASHOPT_COLOR" ]] && GASHOPT_COLOR=false
 [[ -z "$GASHOPT_DRYRUN" ]] && GASHOPT_DRYRUN=false
 [[ -z "$GASHOPT_VERBOSE" ]] && GASHOPT_VERBOSE=false
+
 MESSAGE_LEVEL="INFO"
 PRINT_OUTPUT=false
 
@@ -164,12 +170,12 @@ else
 fi
 
 ##
-## Output
+## Status information
 ##
 gash-echo -o "-en" "$MESSAGE_LEVEL" "$MESSAGE... " 1>&2
 
-# Write the command you are about to execute to stderr if verbose.
 if $GASHOPT_VERBOSE ; then
+	# Write command you are about to execute to stderr
 	gash-echo -s "$MESSAGE_LEVEL" "\n$CYAN>>> $MAGENTA$COMMAND$RESET" 1>&2
 fi
 
@@ -194,7 +200,7 @@ fi
 ## Result
 ##
 if $GASHOPT_VERBOSE; then
-	# Include the actual command output in stderr.
+	# Write command output to stderr.
 	gash-echo -s "$MESSAGE_LEVEL" "$OUTPUT" 1>&2
 	gash-echo -s -o "-en" "$MESSAGE_LEVEL" "$CYAN<<<$RESET " 1>&2
 fi
@@ -212,6 +218,9 @@ fi
 ## Done
 ##
 if $PRINT_OUTPUT; then
+	# Write command output to stdout.
 	echo -e $OUTPUT
 fi
+
+# Exit with return value of command.
 exit $RESULT
