@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Write a formatted message to output.
+# Write formatted message to output.
 
 #######################################
 # Get numerical value for log level.
@@ -8,28 +8,36 @@
 #   log level
 # Outputs:
 #   Writes numerical value to stoud
-#   DEBUG   => 0
-#   INFO    => 1
-#   WARN => 2
-#   ERROR   => 3
+#   DEBUG => 0
+#   INFO  => 1
+#   WARN  => 2
+#   ERROR => 3
 #   -1 for anyting else (unkown level)
+# Returns:
+#   0 if log level is valid
+#   1 if not
 #######################################
 function level_to_num() {
 	case $1 in
 		DEBUG)
 			echo "0"
+			return 0
 			;;
 		INFO)
 			echo "1"
+			return 0
 			;;
 		WARN)
 			echo "2"
+			return 0
 			;;
 		ERROR)
 			echo "3"
+			return 0
 			;;
 		*)
 			echo "-1"
+			return 1
 			;;
 	esac
 }
@@ -41,8 +49,8 @@ function level_to_num() {
 #  Usage info and help hint
 #######################################
 function info_and_exit() {
-	echo -e "Usage: $USAGE"
-	echo -e "       $HINT"
+	echo -e "Usage: $USAGE" 1>&2
+	echo -e "       $HINT" 1>&2
 	exit 1
 }
 
@@ -59,17 +67,18 @@ readonly ARGUMENTS=$( cat << arguments
 \tMESSAGE_LOGLEVEL ...... DEBUG|INFO|WARN|ERROR
 \t                        Message will only be written to output
 \t                        if enviroment variable GASHOPT_LOGLEVEL
-\t                        contains equal or lower level (will
-\t                        default to INFO if not set).
-\tMESSAGE_TEXT .......... Content of the message you want to write.
+\t                        contains equal or lower level. 
+\tMESSAGE_TEXT .......... Content you want to write to output.
 arguments
 )
 
 readonly OPTIONS=$( cat << options
-\t-s (simple) ........... Only output MESSAGE_TEXT (overwrites
-\t                        ´-c´ and ´-t´)
+\t-s (simple) ........... Only write MESSAGE_TEXT to output. No
+\t                        log level information, timestamp or
+\t                        color (overwrites ´-c´ and ´-t´).
 \t-o (options) OPTIONS... Options for echo (default: ´-e´).
-\t-c (color) ............ Produce colored output.
+\t-c (color) ............ Include control sequences for color
+\t                        in output.
 \t-t (timestamp) ........ Include timestamp in output.
 \t-V (version) .......... Print version and exit.
 \t-h (help) ............. Print help and exit.
@@ -77,16 +86,15 @@ options
 )
 
 readonly ENVIROMENT_VARIABLES=$( cat << enviroment_variables
-\tGASHOPT_LOGLEVEL ...... DEBUG|INFO|WARN|ERROR (default: DEBUG)
+\tGASHOPT_LOGLEVEL ...... DEBUG|INFO|WARN|ERROR (default: INFO)
 \t                        Message will only be written to output if cli
-\t                        argument MESSAGE_LEVEL is a higher or equal
-\t                        level.
+\t                        argument MESSAGE_LEVEL is higher or equal.
 \tGASHOPT_TIMESTAMP ..... true|false (default: false)
 \t                        Include iso 8601 timestamp in output. Can be
 \t                        overwritten by ´-t´ and ´-s´ option.
 \tGASHOPT_COLOR ......... true|false (default: false)
-\t                        Produce colored output. Can be overwritten
-\t                        by ´-c´ and ´-s´ option.
+\t                        Include control sequenced for color in output.
+\t                        Can be overwritten by ´-c´ and ´-s´ option.
 enviroment_variables
 )
 
@@ -112,9 +120,10 @@ help
 ##
 ## Enviroment variables & defaults
 ##
-[[ -z "$GASHOPT_LOGLEVEL" ]] && readonly GASHOPT_LOGLEVEL="INFO"
+[[ -z "$GASHOPT_LOGLEVEL" ]] && GASHOPT_LOGLEVEL="INFO"
 [[ -z "$GASHOPT_TIMESTAMP" ]] && GASHOPT_TIMESTAMP=false
 [[ -z "$GASHOPT_COLOR" ]] && GASHOPT_COLOR=false
+
 ECHO_OPTIONS="-e"
 SIMPLE_OUTPUT=false
 
@@ -179,14 +188,20 @@ if [[ "$MESSAGE_LOGLEVEL_NUM" -eq -1 ]]; then
 	info_and_exit
 fi
 
-if [[ "$MESSAGE_LOGLEVEL_NUM" -ge "$GASHOPT_LOGLEVEL_NUM" ]]; then
-	# Log level for message is greater or equal to gashopt log level. So we actually want
-	# to write the message to output (e.g. message is ERROR and gashopt is set to INFO).
-	readonly WRITE_MESSAGE=true
-else
-	# Log level for message is smaller than gashopt log level. The message will not be
-	# written (e.g. message is INFO and gashopt is set to WARN).
-	readonly WRITE_MESSAGE=false
+if [[ "$MESSAGE_LOGLEVEL_NUM" -lt "$GASHOPT_LOGLEVEL_NUM" ]]; then
+	# Log level for message is less than gashopt log level. The message will not be
+	# written and we can exit here (e.g. message is INFO and gashopt is set to WARN).
+	exit 0
+fi
+
+##
+## Simple
+##
+if $SIMPLE_OUTPUT; then
+	# Simple output: Just write message text to output and exit here. No need for
+	# timestamps, colors or any other fancy stuff.
+	echo "$ECHO_OPTIONS" "$MESSAGE_TEXT"
+	exit $?
 fi
 
 ##
@@ -201,7 +216,7 @@ fi
 ##
 ## Color
 ##
-if $GASHOPT_COLOR;then
+if $GASHOPT_COLOR; then
 	case "$MESSAGE_LOGLEVEL" in
 		DEBUG)
 			readonly MESSAGE_COLOR="\e[2m" #Dim
@@ -240,15 +255,5 @@ esac
 ##
 ## Write message to output
 ##
-if $WRITE_MESSAGE; then
-	if $SIMPLE_OUTPUT; then
-		echo "$ECHO_OPTIONS" "$MESSAGE_TEXT"
-	else
-		echo "$ECHO_OPTIONS" "$MESSAGE_COLOR$TIMESTAMP[$MESSAGE_LOGLEVEL]$INDENT$MESSAGE_TEXT$DEFAULT_COLOR"
-	fi
-fi
-
-##
-## Done
-##
-exit 0
+echo "$ECHO_OPTIONS" "$MESSAGE_COLOR$TIMESTAMP[$MESSAGE_LOGLEVEL]$INDENT$MESSAGE_TEXT$DEFAULT_COLOR"
+exit $?
