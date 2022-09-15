@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Execute command. Use gash-log to write status information
+# Execute command. Use gash-echo to write status information
 # to stderr and supress output of command itself.
 
 #######################################
@@ -24,7 +24,7 @@ readonly USAGE="$NAME [options] COMMAND MESSAGE"
 readonly HINT="-h for help"
 
 readonly DESCRIPTION=$( cat << description
-Execute command. Use gash-log to write status information
+Execute command. Use gash-echo to write status information
 to stderr and supress output of command itself.
 description
 )
@@ -37,7 +37,7 @@ arguments
 
 readonly OPTIONS=$( cat << options
 \t-o (output) ........... Write command output to stdout.
-\t-l (level) LEVEL ...... Message level used for gash-log
+\t-l (level) LEVEL ...... Message level used for gash-echo
 \t                        (default: ´INFO´).
 \t-v (verbose) .......... Write more information to stderr.
 \t-d (dry-run) .......... Do not actually execute.
@@ -166,11 +166,11 @@ fi
 ##
 ## Output
 ##
-gash-log -o "-en" "$MESSAGE_LEVEL" "$MESSAGE... " 1>&2
+gash-echo -o "-en" "$MESSAGE_LEVEL" "$MESSAGE... " 1>&2
 
 # Write the command you are about to execute to stderr if verbose.
 if $GASHOPT_VERBOSE ; then
-	gash-log -s "$MESSAGE_LEVEL" "\n$CYAN>>> $MAGENTA$COMMAND$RESET" 1>&2
+	gash-echo -s "$MESSAGE_LEVEL" "\n$CYAN>>> $MAGENTA$COMMAND$RESET" 1>&2
 fi
 
 ##
@@ -195,17 +195,17 @@ fi
 ##
 if $GASHOPT_VERBOSE; then
 	# Include the actual command output in stderr.
-	gash-log -s "$MESSAGE_LEVEL" "$OUTPUT" 1>&2
-	gash-log -s -o "-en" "$MESSAGE_LEVEL" "$CYAN<<<$RESET " 1>&2
+	gash-echo -s "$MESSAGE_LEVEL" "$OUTPUT" 1>&2
+	gash-echo -s -o "-en" "$MESSAGE_LEVEL" "$CYAN<<<$RESET " 1>&2
 fi
 
 # Write information about execution result to stderr.
 if $GASHOPT_DRYRUN; then
-	gash-log -s "$MESSAGE_LEVEL" "$YELLOW(Dry run)$RESET" 1>&2
+	gash-echo -s "$MESSAGE_LEVEL" "$YELLOW(Dry run)$RESET" 1>&2
 elif [[ $RESULT -eq 0 ]]; then
-	gash-log -s "$MESSAGE_LEVEL" "$GREEN(Ok)$RESET" 1>&2
+	gash-echo -s "$MESSAGE_LEVEL" "$GREEN(Ok)$RESET" 1>&2
 else
-	gash-log -s "$MESSAGE_LEVEL" "$RED(Failed)$RESET" 1>&2
+	gash-echo -s "$MESSAGE_LEVEL" "$RED(Failed)$RESET" 1>&2
 fi
 
 ##
