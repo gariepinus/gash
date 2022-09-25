@@ -1,6 +1,8 @@
 # gash
 > gariepinus’ shell tools
 
+[![asciicast](https://asciinema.org/a/rtWRibnJKppT34pb0DHg17usI.svg)](https://asciinema.org/a/rtWRibnJKppT34pb0DHg17usI)
+
 Making it easier to write awesome shell scripts by putting some things into
 dedicated tools I otherwise found myself rewriting repeatedly.
 
