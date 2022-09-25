@@ -1,23 +1,21 @@
 # gash
 > gariepinus’ shell tools
 
-Making it easier to write awesome shell scripts by putting some things I found
-myself rewriting in some form or another repeatedly into dedicated tools.
+Making it easier to write awesome shell scripts by putting some things into
+dedicated tools I otherwise found myself rewriting repeatedly.
 
 ## Installing / Getting started
 
 Clone the repo and run make to "install" the tools by creating symlinks to them
-in your $PATH. Have a look at the [Makefile](Makefile) for more details.
+in your `PATH`. Have a look at the [Makefile](Makefile) for more details.
 
-```shell
+```
 ~$ git clone git@github.com:gariepinus/gash.git
 ~$ cd gash
 ~/gash/$ sudo make install
 ~/gash/$ gash-echo INFO "Hello world"
 [INFO]  Hello world
 ```
-
-Here you should say what actually happens when you execute the code above.
 
 ## Functionality
 
@@ -27,7 +25,7 @@ Write formatted message to output - or not, depending on the Log Levels
 chosen for the message and set via environment variable `GASHOPT_LOGLEVEL`.
 
 ```
-~$ gash-echo [options] MESSAGE_LOGLEVEL MESSAGE_TEXT
+gash-echo [options] MESSAGE_LOGLEVEL MESSAGE_TEXT
 ```
 
 ### gash-exec
@@ -36,7 +34,7 @@ Execute command suppressing all of its output and use gash-echo to write
 status information to `stderr`.
 
 ```
-~$ gash-exec [options] COMMAND MESSAGE
+gash-exec [options] COMMAND MESSAGE
 ```
 
 ## Configuration
@@ -46,34 +44,34 @@ variables.
 
 ### GASHOPT_LOGLEVEL
 
-Value: "DEBUG"|"INFO"|"WARN"|"ERROR" (default: "INFO")
+> DEBUG|INFO|WARN|ERROR (default: INFO)
 
 `gash-echo` will only write messages to output if the level chosen for them
 is equal or higher then the level set by this variable.
 
 ### GASHOPT_TIMESTAMP 
 
-Value: true|false (default: false)
+> true|false (default: false)
 
 Set to true to include timestamps in output written by `gash-echo`.
 
 ### GASHOPT_COLOR
 
-Value: true|false (default: false)
+> true|false (default: false)
 
 Set to true to include control sequences for color in output written by
 `gash-echo` and status information from `gash-exec`.
 
 ### GASHOPT_DRYRUN
 
-Value: true|false (default: false)
+> true|false (default: false)
 
 If set to true `gash-exec` will not actually execute commands and simply
 return with 0.
 
 ### GASHOPT_VERBOSE
 
-Value: true|false (default: false)
+> true|false (default: false)
 
 Set to true to get more information written to stderr by `gash-exec`.
 
