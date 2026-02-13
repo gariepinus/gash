@@ -15,6 +15,22 @@ function info_and_exit() {
 	exit 1
 }
 
+#######################################
+# 
+#######################################
+function ask_for_continue() {
+	if ! $FORCE; then
+		read -r -p "Do you want to continue? [y/N] " response
+		case "$response" in
+			[yY][eE][sS]|[yY])
+				;;
+			*)
+				exit 0
+				;;
+		esac
+	fi
+}
+
 ##
 ## Constants
 ##
@@ -35,8 +51,7 @@ readonly ARGUMENTS=$( cat << arguments
 \t                            copy of FILE.
 \t                          clean|cl :: Remove oldest timestapmed
 \t                            copies of FILE.
-\t                          copyclean|cc :: Peform copy, followed
-\t                            by clean.
+\t                          copyclean|cc :: Copy, then clean
 \t                          list|ls :: List existing timestamped
 \t                            copies of FILE.
 \t                        (default: copy)
@@ -45,15 +60,61 @@ arguments
 )
 
 readonly OPTIONS=$( cat << options
-\t-p (path) PATH ........ Path to destination diretroy where
-\t                        copies will be written/cleaned
-\t                        (default: './').
+\t-p (path) PATH ........ Path to destination directory where
+\t                        copies will be written/removed
+\t                        (default: ´./´).
+\t-m (mode) D.M.Y.A ..... Retention mode for clean, more info
+\t                        below (default: ´0.0.0.64´).
+\t-f (force) ............ Do not ask for user input and use force
+\t                        on all cp and rm operations.
 \t-v (verbose) .......... More output.
 \t-d (dry-run) .......... Do not actually execute commands.
 \t-c (color) ............ Write status information without color.
 \t-V (version) .......... Print version and exit.
 \t-h (help) ............. Print help and exit.
 options
+)
+
+readonly RETENTIONMODE=$(cat << retentionmode
+\tThe behaviour of the clean command is determined by the choosen
+\tretention mode. A mode is defined by four numbers, combined by
+\tdots:
+\t
+\tDAY.MONTH.YEAR.ALL
+\t
+\tDAY ...... In it's first step the clean command will check if
+\t           the number of timestamped copies of FILE written
+\t           today exeeds the number given here. If so it will
+\t           delete the oldest copies until the number matches.
+\t           To skip this step choose ´0´.
+\tMONTH .... In it's second step the clean command will check if
+\t           the number of timestamped copies (*including* those
+\t           written today) exeeds this number and delete the
+\t           the oldest ones if neccessary. To skip this step
+\t           choose ´0´.
+\tYEAR ..... In it's thitd step clean will count all timesptamped
+\t           copies written this year (*inluding* this month and
+\t           today) exeeds this number and delete the oldest 
+\t           ones if neccessary. To skip this step choose ´0´.
+\tALL ...... In it's final step clean will count all excisting
+\t           timestamped copies (regardless when they where
+\t           written) and delete the oldest ones if they exeed
+\t           this number. To skip this step choose ´0´.
+\t
+\tExamples:
+\t0.0.0.64 .... Just keep up to 64 copies, regardless when they
+\t              where written. This is the default.
+\t2.4.8.0 ..... If more than two copies with todays timestamp
+\t              exist: Delete the oldest ones until only two
+\t              remain.
+\t              If more than four copies with this months timestamp
+\t              exist (including the up to two from today):
+\t              Delete the oldest ones until only four remain.
+\t              If more than eight copies with this years timestamp
+\t              exist (including those from this month and today):
+\t              Delete the oldest ones until only four remain.
+\t              Do not delete any copies from previous years.
+retentionmode
 )
 
 readonly ENVIROMENT_VARIABLES=$( cat << enviroment_variables
@@ -83,6 +144,9 @@ $ARGUMENTS
 Options:
 $OPTIONS
 
+Retention mode:
+$RETENTIONMODE
+
 Enviroment variables:
 $ENVIROMENT_VARIABLES
 help
@@ -98,14 +162,22 @@ help
 export GASHOPT_VERBOSE="false"
 export GASHOPT_LOGLEVEL="INFO"
 DESTINATION="./"
+MODE="0.0.0.64"
+FORCE=false
 
 ##
 ## Options
 ##
-while getopts "p:vdctVh" opt; do
+while getopts "p:m:fvdctVh" opt; do
 	case "$opt" in
 		p)
 			readonly DESTINATION="$OPTARG"
+			;;
+		m)
+			readonly MODE="$OPTARG"
+			;;
+		f)
+			readonly FORCE=true
 			;;
 		v)
 			export GASHOPT_VERBOSE=true
@@ -155,42 +227,22 @@ fi
 ## Evaluate COMMAND
 ##
 case "$COMMAND" in
-	("copy")
+	("copy"|"co")
 		readonly COPY=true
 		readonly CLEAN=false
 		readonly LIST=false
 		;;
-	("co")
-		readonly COPY=true
-		readonly CLEAN=false
-		readonly LIST=false
-		;;
-	("clean")
+	("clean"|"cl")
 		readonly COPY=false
 		readonly CLEAN=true
 		readonly LIST=false
 		;;
-	("cl")
-		readonly COPY=false
-		readonly CLEAN=true
-		readonly LIST=false
-		;;
-	("copyclean")
+	("copyclean"|"cc")
 		readonly COPY=true
 		readonly CLEAN=true
 		readonly LIST=false
 		;;
-	("cc")
-		readonly COPY=true
-		readonly CLEAN=true
-		readonly LIST=false
-		;;
-	("list")
-		readonly COPY=false
-		readonly CLEAN=false
-		readonly LIST=true
-		;;
-	("ls")
+	("list"|"ls")
 		readonly COPY=false
 		readonly CLEAN=false
 		readonly LIST=true
@@ -213,6 +265,7 @@ readonly TARGET="${DESTINATION}${FILENAME}_bak"
 ## List
 ##
 if $LIST; then
+	gash-echo "DEBUG" "======[ List ]======"
 	if $GASHOPT_VERBOSE; then
 		readonly LS="ls -l"
 		readonly EXEC="gash-exec -v"
@@ -227,14 +280,78 @@ fi
 ## Copy
 ##
 if $COPY; then
-	gash-exec "cp -v $FILEPATH $TARGET$(date +%Y%m%d%H%M%S).$FILEEXTENSION" "Writing timestamped copy of '$FILENAME'"
+	if $FORCE; then
+		f="-f"
+	else
+		f=""
+	fi
+	gash-echo "DEBUG" "======[ Copy ]======"
+	gash-exec "cp $f -v $FILEPATH $TARGET$(date +%Y%m%d%H%M%S).$FILEEXTENSION" "Writing timestamped copy of '$FILENAMEFULL'"
 fi
 
 ##
 ## Clean
 ##
 if $CLEAN; then
-	gash-echo "WARN" "Cleanup"
+	gash-echo "DEBUG" "======[ Clean ]======"
+
+	# Evaluate MODE
+	if ! [[ $MODE =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+		gash-echo "ERROR" "Invalid retention mode." 1>&2
+		exit 1
+	fi
+
+	readonly D=$(cut -d '.' -f1 <<< $MODE)
+	readonly M=$(cut -d '.' -f2 <<< $MODE)
+	readonly Y=$(cut -d '.' -f3 <<< $MODE)
+	readonly A=$(cut -d '.' -f4 <<< $MODE)
+
+	# Step 1: Day
+	gash-echo "DEBUG" "## Step 1: Day   [retention limit ´$D´]"
+	if [[ $D -ne 0 ]]; then
+		echo foo
+	else
+		gash-echo "DEBUG" "Skipped..."
+	fi
+
+	# Step 2: Month
+	gash-echo "DEBUG" "## Step 2: Month [retention limit ´$M´]"
+	if [[ $M -ne 0 ]]; then
+		if [[ $D -gt $M && $D -ne 0 ]]; then
+			gash-echo "WARN" "Your retention limit for this month is less than for today." 1>&2
+			ask_for_continue
+		fi
+	else
+		gash-echo "DEBUG" "Skipped..."
+	fi
+	
+	# Step 3: Year
+	gash-echo "DEBUG" "## Step 3: Year  [retention limit ´$Y´]"
+	if [[ $Y -ne 0 ]]; then
+		dm="$(($D+$M))"
+		if [[ $dm -gt $Y && $dm -ne 0 ]]; then
+			gash-echo "WARN" "Your retention limit for this year is less than for this month and today combined." 1>&2
+			ask_for_continue
+		fi
+	else
+		gash-echo "DEBUG" "Skipped..."
+	fi
+
+	# Step 4: All
+	gash-echo "DEBUG" "## Step 4: All   [retention limit ´$A´]"
+	if [[ $A -ne 0 ]]; then
+		dmy="$(($D+$M+$Y))"
+		if [[ $dmy -gt $A && $dmy -ne 0 ]]; then
+			gash-echo "WARN" "Your overall retention limit is less than for this year, this month and today combined." 1>&2
+			ask_for_continue
+		fi
+	else
+		gash-echo "DEBUG" "Skipped..."
+	fi
 fi
 
+##
+## Done
+##
+gash-echo "DEBUG" "======[ Done ]======"
 exit 0
