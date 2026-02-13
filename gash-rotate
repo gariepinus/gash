@@ -1,0 +1,196 @@
+#!/bin/bash
+#
+# Create a timestamped copy of a file. Optionally
+# cleanup already exsiting copies.
+
+#######################################
+# Write usage info to stderr and exit
+# with 1.
+# Outputs:
+#  Usage info and help hint
+#######################################
+function info_and_exit() {
+	echo -e "Usage: $USAGE" 1>&2
+	echo -e "       $HINT" 1>&2
+	exit 1
+}
+
+##
+## Constants
+##
+readonly NAME="$(basename $0)"
+readonly VERSION="0.1"
+readonly USAGE="$NAME [options] [command] FILE"
+readonly HINT="-h for help"
+
+readonly DESCRIPTION=$( cat << description
+Create a timestamped copy of a file. And/or cleanup
+already existing copies.
+description
+)
+
+readonly ARGUMENTS=$( cat << arguments
+\tCOMMAND ............... Command to be executed.
+\t                        copy|co :: Only create a timestamped
+\t                                copy of your file. No cleanup.
+\t                        clean|cl :: Only cleanup existing
+\t                                 copies. No copy.
+\t                        copyclean|cc :: Create a timestamped
+\t                                     copy and cleanup.
+\t                        (default: copy)
+\tFILE .................. Path to file you want to rotate.
+arguments
+)
+
+readonly OPTIONS=$( cat << options
+\t-p (path) PATH ........ Path to destination diretroy where
+\t                        copies will be written/cleaned
+\t                        (default: './').
+\t-v (verbose) .......... More output.
+\t-d (dry-run) .......... Do not actually execute command.
+\t-c (color) ............ Write status information without color.
+\t-V (version) .......... Print version and exit.
+\t-h (help) ............. Print help and exit.
+options
+)
+
+readonly ENVIROMENT_VARIABLES=$( cat << enviroment_variables
+\tGASHOPT_TIMESTAMP ..... true|false (default: false)
+\t                        Include iso 8601 timestamp in output. Can be
+\t                        overwritten by ´-t´ option.
+\tGASHOPT_COLOR ......... true|false (default: true)
+\t                        Write status information with color. Can be
+\t                        overwritten by ´-c´ option.
+\tGASHOPT_DRYRUN ........ true|false (default: false)
+\t                        Don't execute command. Can be overwritten by
+\t                        ´-d´ option.
+enviroment_variables
+)
+
+readonly HELP=$( cat << help
+$NAME/v$VERSION
+
+$DESCRIPTION
+
+Usage:
+\t$USAGE
+
+Arguments:
+$ARGUMENTS
+
+Options:
+$OPTIONS
+
+Enviroment variables:
+$ENVIROMENT_VARIABLES
+help
+)
+
+##
+## Enviroment variables & defaults
+##
+[[ -z "$GASHOPT_TIMESTAMP" ]] && export GASHOPT_TIMESTAMP=false
+[[ -z "$GASHOPT_COLOR" ]] && export GASHOPT_COLOR=true
+[[ -z "$GASHOPT_DRYRUN" ]] && export GASHOPT_DRYRUN=false
+
+export GASHOPT_LOGLEVEL="INFO"
+DESTINATION="./"
+
+##
+## Options
+##
+while getopts "p:vdctVh" opt; do
+	case "$opt" in
+		p)
+			readonly DESTINATION="$OPTARG"
+			;;
+		v)
+			export GASHOPT_VERBOSE=true
+			export GASHOPT_LOGLEVEL="DEBUG"
+			;;
+		d)
+			export GASHOPT_DRYRUN=true
+			;;
+		c)
+			export GASHOPT_COLOR=false
+			;;
+		t)
+			export GASHOPT_TIMESTAMP=true
+			;;
+		V)
+			echo -e "$VERSION"
+			exit 0
+			;;
+		h)
+			echo -e "$HELP"
+			exit 0
+			;;
+		*)
+			info_and_exit
+			;;
+	esac
+done
+
+# Remove options from $@
+shift $((OPTIND-1))
+
+##
+## Arguments
+##
+if [[ $# -eq 1 ]]; then
+	readonly COMMAND="copy"
+	readonly FILE="$1"
+elif [[ $# -eq 2 ]]; then
+	readonly COMMAND="$1"
+	readonly FILE="$2"
+else
+	echo -e "$0: Wrong number of arguments." 1>&2
+	info_and_exit
+fi
+
+##
+## Evaluate COMMAND
+##
+case "$COMMAND" in
+	("copy")
+		readonly COPY=true
+		readonly CLEAN=false
+		;;
+	("co")
+		readonly COPY=true
+		readonly CLEAN=false
+		;;
+	("clean")
+		readonly COPY=false
+		readonly CLEAN=true
+		;;
+	("cl")
+		readonly COPY=false
+		readonly CLEAN=true
+		;;
+	("copyclean")
+		readonly COPY=true
+		readonly CLEAN=true
+		;;
+	("cc")
+		readonly COPY=true
+		readonly CLEAN=true
+		;;
+	(*)
+		echo -e "$0: Wrong number of arguments." 1>&2
+		info_and_exit
+		;;
+esac
+
+##
+## Copy
+##
+if $COPY; then
+	gash-echo "DEBUG" "Copy"
+fi
+##
+## Clean
+##
+if $CLEAN; then
+	gash-echo "DEBUG" "Cleanup"
+fi
