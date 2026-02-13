@@ -31,12 +31,14 @@ description
 
 readonly ARGUMENTS=$( cat << arguments
 \tCOMMAND ............... Command to be executed.
-\t                        copy|co :: Only create a timestamped
-\t                                copy of your file. No cleanup.
-\t                        clean|cl :: Only cleanup existing
-\t                                 copies. No copy.
-\t                        copyclean|cc :: Create a timestamped
-\t                                     copy and cleanup.
+\t                          copy|co :: Write timestamped
+\t                            copy of FILE.
+\t                          clean|cl :: Remove oldest timestapmed
+\t                            copies of FILE.
+\t                          copyclean|cc :: Peform copy, followed
+\t                            by clean.
+\t                          list|ls :: List existing timestamped
+\t                            copies of FILE.
 \t                        (default: copy)
 \tFILE .................. Path to file you want to rotate.
 arguments
@@ -47,7 +49,7 @@ readonly OPTIONS=$( cat << options
 \t                        copies will be written/cleaned
 \t                        (default: './').
 \t-v (verbose) .......... More output.
-\t-d (dry-run) .......... Do not actually execute command.
+\t-d (dry-run) .......... Do not actually execute commands.
 \t-c (color) ............ Write status information without color.
 \t-V (version) .......... Print version and exit.
 \t-h (help) ............. Print help and exit.
@@ -93,6 +95,7 @@ help
 [[ -z "$GASHOPT_COLOR" ]] && export GASHOPT_COLOR=true
 [[ -z "$GASHOPT_DRYRUN" ]] && export GASHOPT_DRYRUN=false
 
+export GASHOPT_VERBOSE="false"
 export GASHOPT_LOGLEVEL="INFO"
 DESTINATION="./"
 
@@ -139,10 +142,10 @@ shift $((OPTIND-1))
 ##
 if [[ $# -eq 1 ]]; then
 	readonly COMMAND="copy"
-	readonly FILE="$1"
+	readonly FILEPATH="$1"
 elif [[ $# -eq 2 ]]; then
 	readonly COMMAND="$1"
-	readonly FILE="$2"
+	readonly FILEPATH="$2"
 else
 	echo -e "$0: Wrong number of arguments." 1>&2
 	info_and_exit
@@ -155,42 +158,83 @@ case "$COMMAND" in
 	("copy")
 		readonly COPY=true
 		readonly CLEAN=false
+		readonly LIST=false
 		;;
 	("co")
 		readonly COPY=true
 		readonly CLEAN=false
+		readonly LIST=false
 		;;
 	("clean")
 		readonly COPY=false
 		readonly CLEAN=true
+		readonly LIST=false
 		;;
 	("cl")
 		readonly COPY=false
 		readonly CLEAN=true
+		readonly LIST=false
 		;;
 	("copyclean")
 		readonly COPY=true
 		readonly CLEAN=true
+		readonly LIST=false
 		;;
 	("cc")
 		readonly COPY=true
 		readonly CLEAN=true
+		readonly LIST=false
+		;;
+	("list")
+		readonly COPY=false
+		readonly CLEAN=false
+		readonly LIST=true
+		;;
+	("ls")
+		readonly COPY=false
+		readonly CLEAN=false
+		readonly LIST=true
 		;;
 	(*)
-		echo -e "$0: Wrong number of arguments." 1>&2
+		echo -e "$0: Unkown command." 1>&2
 		info_and_exit
 		;;
 esac
 
 ##
+## Evaluate FILE
+##
+readonly FILENAMEFULL=$(basename -- "$FILEPATH")
+readonly FILEEXTENSION="${FILENAMEFULL##*.}"
+readonly FILENAME="${FILENAMEFULL%.*}"
+readonly TARGET="${DESTINATION}${FILENAME}_bak"
+
+##
+## List
+##
+if $LIST; then
+	if $GASHOPT_VERBOSE; then
+		readonly LS="ls -l"
+		readonly EXEC="gash-exec -v"
+	else
+		readonly LS="ls"
+		readonly EXEC="gash-exec -o -l DEBUG"
+	fi
+	$EXEC "$LS $TARGET*$FILEEXTENSION" "Listing existing copies"
+fi
+
+##
 ## Copy
 ##
 if $COPY; then
-	gash-echo "DEBUG" "Copy"
+	gash-exec "cp -v $FILEPATH $TARGET$(date +%Y%m%d%H%M%S).$FILEEXTENSION" "Writing timestamped copy of '$FILENAME'"
 fi
+
 ##
 ## Clean
 ##
 if $CLEAN; then
-	gash-echo "DEBUG" "Cleanup"
+	gash-echo "WARN" "Cleanup"
 fi
+
+exit 0
