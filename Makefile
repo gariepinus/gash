@@ -11,7 +11,7 @@
 target_dir = /usr/local/bin/
 
 .PHONY: install
-install: $(target_dir)gash-echo $(target_dir)gash-exec
+install: $(target_dir)gash-echo $(target_dir)gash-exec $(target_dir)gash-rotate
 
 $(target_dir)gash-echo: gash-echo
 	ln -sv $(realpath ./gash-echo) $@
@@ -19,7 +19,11 @@ $(target_dir)gash-echo: gash-echo
 $(target_dir)gash-exec: gash-exec
 	ln -sv $(realpath ./gash-exec) $@
 
+$(target_dir)gash-rotate: gash-exec
+	ln -sv $(realpath ./gash-rotate) $@
+
 .PHONY: remove
 remove:
 	rm -v $(target_dir)gash-echo
 	rm -v $(target_dir)gash-exec
+	rm -v $(target_dir)gash-rotate
