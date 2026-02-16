@@ -39,7 +39,7 @@ function clean() {
 	targets=($1)
 	count=${#targets[@]}
 	difference="$(($count-$2))"
-	gash-echo "DEBUG" "Copies found: $count; Copies to be deleted: $difference" 1>&2
+	gash-echo "DEBUG" "Copies found: $count; Copies to be deleted: $difference"
 	if [[ $count -gt 0 && $difference -gt 0 ]]; then
 		i=0
 		rmlist=""
@@ -350,7 +350,6 @@ if $CLEAN; then
 	# Step 2: Month
 	gash-echo "DEBUG" "## Step 2: Month [retention limit ´$M´]"
 	if [[ $M -ne 0 ]]; then
-		#if [[ $D -gt $M && $D -ne 0 ]]; then
 		if [[ $M -lt $RETAINED ]]; then
 			gash-echo "WARN" "Your retention limit for this month is less than the number of files retained for today." 1>&2
 			ask_for_continue
@@ -363,8 +362,6 @@ if $CLEAN; then
 	# Step 3: Year
 	gash-echo "DEBUG" "## Step 3: Year  [retention limit ´$Y´]"
 	if [[ $Y -ne 0 ]]; then
-		#dm="$(($D+$M))"
-		#if [[ $dm -gt $Y && $dm -ne 0 ]]; then
 		if [[ $Y -lt $RETAINED ]]; then
 			gash-echo "WARN" "Your retention limit for this year is less than the number of files retained for today/this month." 1>&2
 			ask_for_continue
@@ -377,8 +374,6 @@ if $CLEAN; then
 	# Step 4: All
 	gash-echo "DEBUG" "## Step 4: All   [retention limit ´$A´]"
 	if [[ $A -ne 0 ]]; then
-		#dmy="$(($D+$M+$Y))"
-		#if [[ $dmy -gt $A && $dmy -ne 0 ]]; then
 		if [[ $A -lt $RETAINED ]]; then
 			gash-echo "WARN" "Your overall retention limit is less than the number of files retained from previous steps." 1>&2
 			ask_for_continue
