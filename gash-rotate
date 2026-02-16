@@ -39,8 +39,7 @@ function clean() {
 	targets=($1)
 	count=${#targets[@]}
 	difference="$(($count-$2))"
-	gash-echo "DEBUG" "Count: $count; Difference: $difference"
-
+	gash-echo "DEBUG" "Copies found: $count; Copies to be deleted: $difference"
 	if [[ $count -gt 0 && $difference -gt 0 ]]; then
 		i=0
 		rmlist=""
@@ -53,6 +52,10 @@ function clean() {
 			let i++
 		done
 		gash-exec "rm $OPTS $rmlist" "Removing $difference copies of '$FILENAMEFULL'"
+		if [[ $? -ne 0 ]]; then
+			gash-echo "WARN" "Failed to remove copies of '$FILENAMEFULL'"
+			ask_for_continue
+		fi
 	fi
 }
 
@@ -90,9 +93,9 @@ readonly OPTIONS=$( cat << options
 \t                        (default: ´./´).
 \t-m (mode) D.M.Y.A ..... Retention mode for clean, more info
 \t                        below (default: ´0.0.0.64´).
-\t-f (force) ............ Never ask for user confirmation and
-\t                        apply force to all cp and rm commands.
-\t-r (recursive) ........ Apply recursive to all cp and rm
+\t-f (force) ............ Never prompt. Apply force to cp and
+\t                        rm commands.
+\t-r (recursive) ........ Apply recursive to cp and rm
 \t                        commands.
 \t-v (verbose) .......... More output.
 \t-d (dry-run) .......... Do not actually execute commands.
