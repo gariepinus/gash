@@ -36,29 +36,37 @@ function ask_for_continue() {
 # 
 #######################################
 function clean() {
-	targets=($1)
-	count=${#targets[@]}
-	difference="$(($count-$2))"
-	gash-echo "DEBUG" "Copies found: $count; Copies to be deleted: $difference"
-	if [[ $count -gt 0 && $difference -gt 0 ]]; then
-		i=0
-		rmlist=""
-		for target in $1; do
-			if [[ $i -lt $difference ]]; then
-				rmlist="$rmlist $target"
-			else
-				break
-			fi
-			let i++
-		done
-		gash-exec "rm $OPTS $rmlist" "Removing $difference copies of '$FILENAMEFULL'"
-		if [[ $? -ne 0 ]]; then
-			gash-echo "WARN" "Failed to remove copies of '$FILENAMEFULL'"
+	if [[ $2 -eq 0 ]]; then
+		gash-echo "DEBUG" "Skipped..."
+	else
+		targets=($1)
+		count=${#targets[@]}
+		difference="$(($count-$2))"
+		gash-echo "DEBUG" "Copies found: $count ($RETAINED retained from previous step); Copies to be deleted: $difference"
+		if [[ $RETAINED -ne 0 && $difference -gt "$(($count-$RETAINED))" ]]; then
+			gash-echo "WARN" "Copies retained from a previous step will be removed."
 			ask_for_continue
 		fi
-		echo "$(($count-$difference))"
-	else
-		echo "$count"
+		if [[ $count -gt 0 && $difference -gt 0 ]]; then
+			i=0
+			rmlist=""
+			for target in $1; do
+				if [[ $i -lt $difference ]]; then
+					rmlist="$rmlist $target"
+				else
+					break
+				fi
+				let i++
+			done
+			gash-exec "rm $OPTS $rmlist" "Removing $difference copies of '$FILENAMEFULL'"
+			if [[ $? -ne 0 ]]; then
+				gash-echo "WARN" "Failed to remove copies of '$FILENAMEFULL'"
+				ask_for_continue
+			fi
+			RETAINED="$(($count-$difference))"
+		else
+			RETAINED=$count
+		fi
 	fi
 }
 
@@ -332,7 +340,6 @@ if $CLEAN; then
 		gash-echo "ERROR" "Invalid retention mode." 1>&2
 		exit 1
 	fi
-
 	readonly D=$(cut -d '.' -f1 <<< $MODE)
 	readonly M=$(cut -d '.' -f2 <<< $MODE)
 	readonly Y=$(cut -d '.' -f3 <<< $MODE)
@@ -341,47 +348,19 @@ if $CLEAN; then
 	# Step 1: Day
 	RETAINED=0
 	gash-echo "DEBUG" "## Step 1: Day   [retention limit ´$D´]"
-	if [[ $D -ne 0 ]]; then
-		RETAINED=$(clean "$TARGET$(date +%Y%m%d)*$FILEEXTENSION" $D)
-	else
-		gash-echo "DEBUG" "Skipped..."
-	fi
+	clean "$TARGET$(date +%Y%m%d)*$FILEEXTENSION" $D
 
 	# Step 2: Month
 	gash-echo "DEBUG" "## Step 2: Month [retention limit ´$M´]"
-	if [[ $M -ne 0 ]]; then
-		if [[ $M -lt $RETAINED ]]; then
-			gash-echo "WARN" "Your retention limit for this month is less than the number of files retained for today." 1>&2
-			ask_for_continue
-		fi
-		RETAINED=$(clean "$TARGET$(date +%Y%m)*$FILEEXTENSION" $M)
-	else
-		gash-echo "DEBUG" "Skipped..."
-	fi
+	clean "$TARGET$(date +%Y%m)*$FILEEXTENSION" $M
 	
 	# Step 3: Year
 	gash-echo "DEBUG" "## Step 3: Year  [retention limit ´$Y´]"
-	if [[ $Y -ne 0 ]]; then
-		if [[ $Y -lt $RETAINED ]]; then
-			gash-echo "WARN" "Your retention limit for this year is less than the number of files retained for today/this month." 1>&2
-			ask_for_continue
-		fi
-		RETAINED=$(clean "$TARGET$(date +%Y)*$FILEEXTENSION" $Y)
-	else
-		gash-echo "DEBUG" "Skipped..."
-	fi
+	clean "$TARGET$(date +%Y)*$FILEEXTENSION" $Y
 
 	# Step 4: All
 	gash-echo "DEBUG" "## Step 4: All   [retention limit ´$A´]"
-	if [[ $A -ne 0 ]]; then
-		if [[ $A -lt $RETAINED ]]; then
-			gash-echo "WARN" "Your overall retention limit is less than the number of files retained from previous steps." 1>&2
-			ask_for_continue
-		fi
-		RETAINED=$(clean "$TARGET*$FILEEXTENSION" $A)
-	else
-		gash-echo "DEBUG" "Skipped..."
-	fi
+	clean "$TARGET*$FILEEXTENSION" $A
 fi
 
 ##
