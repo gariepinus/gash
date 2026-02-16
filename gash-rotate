@@ -43,6 +43,7 @@ function clean() {
 
 	if [[ $count -gt 0 && $difference -gt 0 ]]; then
 		i=0
+		rmlist=""
 		for target in $1; do
 			if [[ $i -lt $difference ]]; then
 				rmlist="$rmlist $target"
