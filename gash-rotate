@@ -41,7 +41,7 @@ function clean() {
 	difference="$(($count-$2))"
 	gash-echo "DEBUG" "Count: $count; Difference: $difference"
 
-	if [[ $? -eq 0 && $count -gt 0 && $difference -gt 0 ]]; then
+	if [[ $count -gt 0 && $difference -gt 0 ]]; then
 		i=0
 		for target in $1; do
 			if [[ $i -lt $difference ]]; then
@@ -51,7 +51,7 @@ function clean() {
 			fi
 			let i++
 		done
-		gash-exec "rm$F-v $rmlist" "Removing $difference copies of '$3'"
+		gash-exec "rm$F-v $rmlist" "Removing $difference copies of '$FILENAMEFULL'"
 	fi
 }
 
@@ -330,7 +330,7 @@ if $CLEAN; then
 	# Step 1: Day
 	gash-echo "DEBUG" "## Step 1: Day   [retention limit ´$D´]"
 	if [[ $D -ne 0 ]]; then
-		clean "$TARGET$(date +%Y%m%d)*.$FILEEXTENSION" $D $FILENAMEFULL
+		clean "$TARGET$(date +%Y%m%d)*.$FILEEXTENSION" $D
 	else
 		gash-echo "DEBUG" "Skipped..."
 	fi
@@ -342,7 +342,7 @@ if $CLEAN; then
 			gash-echo "WARN" "Your retention limit for this month is less than for today." 1>&2
 			ask_for_continue
 		fi
-		clean "$TARGET$(date +%Y%m)*.$FILEEXTENSION" $M $FILENAMEFULL
+		clean "$TARGET$(date +%Y%m)*.$FILEEXTENSION" $M
 	else
 		gash-echo "DEBUG" "Skipped..."
 	fi
@@ -355,7 +355,7 @@ if $CLEAN; then
 			gash-echo "WARN" "Your retention limit for this year is less than for this month and today combined." 1>&2
 			ask_for_continue
 		fi
-		clean "$TARGET$(date +%Y)*.$FILEEXTENSION" $Y $FILENAMEFULL
+		clean "$TARGET$(date +%Y)*.$FILEEXTENSION" $Y
 	else
 		gash-echo "DEBUG" "Skipped..."
 	fi
@@ -368,7 +368,7 @@ if $CLEAN; then
 			gash-echo "WARN" "Your overall retention limit is less than for this year, this month and today combined." 1>&2
 			ask_for_continue
 		fi
-		clean "$TARGET*.$FILEEXTENSION" $A $FILENAMEFULL
+		clean "$TARGET*.$FILEEXTENSION" $A
 	else
 		gash-echo "DEBUG" "Skipped..."
 	fi
