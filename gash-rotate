@@ -52,7 +52,7 @@ function clean() {
 			fi
 			let i++
 		done
-		gash-exec "rm$F-v $rmlist" "Removing $difference copies of '$FILENAMEFULL'"
+		gash-exec "rm $OPTS $rmlist" "Removing $difference copies of '$FILENAMEFULL'"
 	fi
 }
 
@@ -76,7 +76,7 @@ readonly ARGUMENTS=$( cat << arguments
 \t                            copy of FILE.
 \t                          clean|cl :: Remove old timestamped
 \t                            copies of FILE.
-\t                          copyclean|cc :: Copy, then clean
+\t                          copyclean|cc :: Copy, then clean.
 \t                          list|ls :: List existing timestamped
 \t                            copies of FILE.
 \t                        (default: ´copy´)
@@ -91,7 +91,9 @@ readonly OPTIONS=$( cat << options
 \t-m (mode) D.M.Y.A ..... Retention mode for clean, more info
 \t                        below (default: ´0.0.0.64´).
 \t-f (force) ............ Never ask for user confirmation and
-\t                        apply force to all cp and rm operations.
+\t                        apply force to all cp and rm commands.
+\t-r (recursive) ........ Apply recursive to all cp and rm
+\t                        commands.
 \t-v (verbose) .......... More output.
 \t-d (dry-run) .......... Do not actually execute commands.
 \t-c (color) ............ Use color in output.
@@ -173,12 +175,12 @@ export GASHOPT_LOGLEVEL="INFO"
 DESTINATION="./"
 MODE="0.0.0.64"
 FORCE=false
-F=" "
+OPTS="-v"
 
 ##
 ## Options
 ##
-while getopts "p:m:fvdctVh" opt; do
+while getopts "p:m:frvdctVh" opt; do
 	case "$opt" in
 		p)
 			readonly DESTINATION="$OPTARG"
@@ -188,7 +190,10 @@ while getopts "p:m:fvdctVh" opt; do
 			;;
 		f)
 			readonly FORCE=true
-			readonly F=" -f "
+			OPTS="$OPTS -f"
+			;;
+		r)
+			OPTS="$OPTS -r"
 			;;
 		v)
 			export GASHOPT_VERBOSE=true
@@ -268,9 +273,20 @@ esac
 ## Evaluate FILE
 ##
 readonly FILENAMEFULL=$(basename -- "$FILEPATH")
-readonly FILEEXTENSION="${FILENAMEFULL##*.}"
 readonly FILENAME="${FILENAMEFULL%.*}"
-readonly TARGET="${DESTINATION}${FILENAME}_bak"
+readonly TARGET="${DESTINATION}${FILENAME}_gr"
+
+if [[ -d $FILEPATH ]]; then
+	FILEEXTENSION=""
+elif [[ -f $FILEPATH ]]; then
+	FILEEXTENSION=".${FILENAMEFULL##*.}"
+	if [ "$FILEEXTENSION" = ".$FILENAME" ]; then
+		FILEEXTENSION=""
+	fi
+else
+	gash-echo "ERROR" "'$FILEPATH' not found."
+	exit 1
+fi
 
 ##
 ## List
@@ -278,13 +294,13 @@ readonly TARGET="${DESTINATION}${FILENAME}_bak"
 if $LIST; then
 	gash-echo "DEBUG" "======[ List ]======"
 	if $GASHOPT_VERBOSE; then
-		readonly LS="ls -l"
+		readonly LS="ls -l -d"
 		readonly EXEC="gash-exec -v"
 	else
-		readonly LS="ls"
+		readonly LS="ls -d"
 		readonly EXEC="gash-exec -o -l DEBUG"
 	fi
-	$EXEC "$LS $TARGET*.$FILEEXTENSION" "Listing existing copies"
+	$EXEC "$LS $TARGET*$FILEEXTENSION" "Listing existing copies"
 fi
 
 ##
@@ -292,8 +308,8 @@ fi
 ##
 if $COPY; then
 	gash-echo "DEBUG" "======[ Copy ]======"
-	gash-exec "cp$F-v $FILEPATH $TARGET$(date +%Y%m%d%H%M%S).$FILEEXTENSION" "Writing timestamped copy of '$FILENAMEFULL'"
-	if [[ $? -ne 0 ]]; then
+	gash-exec "cp $OPTS $FILEPATH $TARGET$(date +%Y%m%d%H%M%S)$FILEEXTENSION" "Writing timestamped copy of '$FILENAMEFULL'"
+	if [[ $? -ne 0 ]] && $CLEAN; then
 		gash-echo "WARN" "Failed to write copy of '$FILENAMEFULL'"
 		ask_for_continue
 	fi
@@ -319,7 +335,7 @@ if $CLEAN; then
 	# Step 1: Day
 	gash-echo "DEBUG" "## Step 1: Day   [retention limit ´$D´]"
 	if [[ $D -ne 0 ]]; then
-		clean "$TARGET$(date +%Y%m%d)*.$FILEEXTENSION" $D
+		clean "$TARGET$(date +%Y%m%d)*$FILEEXTENSION" $D
 	else
 		gash-echo "DEBUG" "Skipped..."
 	fi
@@ -331,7 +347,7 @@ if $CLEAN; then
 			gash-echo "WARN" "Your retention limit for this month is less than for today." 1>&2
 			ask_for_continue
 		fi
-		clean "$TARGET$(date +%Y%m)*.$FILEEXTENSION" $M
+		clean "$TARGET$(date +%Y%m)*$FILEEXTENSION" $M
 	else
 		gash-echo "DEBUG" "Skipped..."
 	fi
@@ -344,7 +360,7 @@ if $CLEAN; then
 			gash-echo "WARN" "Your retention limit for this year is less than for this month and today combined." 1>&2
 			ask_for_continue
 		fi
-		clean "$TARGET$(date +%Y)*.$FILEEXTENSION" $Y
+		clean "$TARGET$(date +%Y)*$FILEEXTENSION" $Y
 	else
 		gash-echo "DEBUG" "Skipped..."
 	fi
@@ -357,7 +373,7 @@ if $CLEAN; then
 			gash-echo "WARN" "Your overall retention limit is less than for this year, this month and today combined." 1>&2
 			ask_for_continue
 		fi
-		clean "$TARGET*.$FILEEXTENSION" $A
+		clean "$TARGET*$FILEEXTENSION" $A
 	else
 		gash-echo "DEBUG" "Skipped..."
 	fi
