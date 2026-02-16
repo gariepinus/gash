@@ -94,7 +94,7 @@ readonly OPTIONS=$( cat << options
 \t                        apply force to all cp and rm operations.
 \t-v (verbose) .......... More output.
 \t-d (dry-run) .......... Do not actually execute commands.
-\t-c (color) ............ No color for output.
+\t-c (color) ............ Use color in output.
 \t-V (version) .......... Print version and exit.
 \t-h (help) ............. Print help and exit.
 options
@@ -165,7 +165,7 @@ help
 ## Enviroment variables & defaults
 ##
 [[ -z "$GASHOPT_TIMESTAMP" ]] && export GASHOPT_TIMESTAMP=false
-[[ -z "$GASHOPT_COLOR" ]] && export GASHOPT_COLOR=true
+[[ -z "$GASHOPT_COLOR" ]] && export GASHOPT_COLOR=false
 [[ -z "$GASHOPT_DRYRUN" ]] && export GASHOPT_DRYRUN=false
 
 export GASHOPT_VERBOSE="false"
@@ -198,7 +198,7 @@ while getopts "p:m:fvdctVh" opt; do
 			export GASHOPT_DRYRUN=true
 			;;
 		c)
-			export GASHOPT_COLOR=false
+			export GASHOPT_COLOR=true
 			;;
 		t)
 			export GASHOPT_TIMESTAMP=true
