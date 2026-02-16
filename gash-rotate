@@ -65,14 +65,14 @@ readonly USAGE="$NAME [options] [command] FILE"
 readonly HINT="-h for help"
 
 readonly DESCRIPTION=$( cat << description
-Write timestamped copy of a file. And/or remove
-already existing copies.
+Write timestamped copy of a file. And/or remove already
+existing copies.
 description
 )
 
 readonly ARGUMENTS=$( cat << arguments
 \tCOMMAND ............... Command to be executed.
-\t                          copy|co :: Write timestamped
+\t                          copy|cp :: Write timestamped
 \t                            copy of FILE.
 \t                          clean|cl :: Remove old timestamped
 \t                            copies of FILE.
@@ -126,18 +126,18 @@ readonly RETENTIONMODE=$(cat << retentionmode
 \t           this number. To skip this step choose ´0´.
 \t
 \tExamples:
-\t0.0.0.64 .... Just keep up to 64 copies, regardless when they
-\t              where written. This is the default.
-\t2.4.8.0 ..... If more than two copies with todays timestamp
-\t                exist: Delete the oldest ones until only two
-\t                remain.
-\t              If more than four copies with this months timestamp
-\t                exist (including the up to two from today):
-\t                Delete the oldest ones until only four remain.
-\t              If more than eight copies with this years timestamp
-\t              exist (including those from this month and today):
-\t                Delete the oldest ones until only eight remain.
-\t              Do not delete any copies from previous years.
+\t  0.0.0.64 .... Just keep up to 64 copies, regardless when they
+\t                where written. This is the default.
+\t  2.4.8.0 ..... If more than two copies with todays timestamp
+\t                  exist: Delete the oldest ones until only two
+\t                  remain.
+\t                If more than four copies with this months timestamp
+\t                  exist (including the up to two from today):
+\t                  Delete the oldest ones until only four remain.
+\t                If more than eight copies with this years timestamp
+\t                  exist (including those from this month and today):
+\t                  Delete the oldest ones until only eight remain.
+\t                Do not delete any copies from previous years.
 retentionmode
 )
 
@@ -238,7 +238,7 @@ fi
 ## Evaluate COMMAND
 ##
 case "$COMMAND" in
-	("copy"|"co")
+	("copy"|"cp")
 		readonly COPY=true
 		readonly CLEAN=false
 		readonly LIST=false
