@@ -6,6 +6,7 @@
 #######################################
 # Write usage info to stderr and exit
 # with 1.
+#
 # Outputs:
 #  Usage info and help hint
 #######################################
@@ -16,7 +17,14 @@ function info_and_exit() {
 }
 
 #######################################
-# 
+# Prompt for user conformation. Exit
+# with one unless input is y or yes.
+# Will be skipped if `-f` option is
+# active.
+#
+# Outputs:
+#  Prompt message
+#  or nothing if `-f` is active
 #######################################
 function ask_for_continue() {
 	if ! $FORCE; then
@@ -31,9 +39,21 @@ function ask_for_continue() {
 	fi
 }
 
-
 #######################################
-# 
+# Count number of copies determined by
+# target path. Remove the oldest ones
+# if they exceed the provided limit.
+#
+# Parameters:
+#   $1 (targets) path to copies that
+#      will be counted and possibly
+#      removed
+#   $2 (limit) maximum number of cobies
+#      that will be kept
+# Outputs:
+#   Several messages with execution
+#   details, depending on 
+#   GASHOPT_LOGLEVEL
 #######################################
 function clean() {
 	if [[ $2 -eq 0 ]]; then
