@@ -79,40 +79,38 @@ readonly USAGE="$NAME [options] [command] FILE"
 readonly HINT="-h for help"
 
 readonly DESCRIPTION=$( cat << description
-Write timestamped copy of a file. And/or remove already
-existing copies.
+Write timestamped copy of a file. And/or remove already existing
+copies.
 description
 )
 
 readonly ARGUMENTS=$( cat << arguments
-\tCOMMAND ............... Command to be executed.
-\t                          copy|cp :: Write timestamped
-\t                            copy of FILE.
-\t                          clean|cl :: Remove old timestamped
-\t                            copies of FILE.
-\t                          copyclean|cc :: Copy, then clean.
-\t                          list|ls :: List existing timestamped
-\t                            copies of FILE.
-\t                        (default: ´copy´)
-\tFILE .................. Path to file you want to rotate.
+\tCOMMAND .... Command to be executed (default: ´copy´).
+\t               copy|cp ......... Write timestamped copy of FILE.
+\t               clean|cl ........ Remove old timestamped copies
+\t                                 of FILE.
+\t               copyclean|cc .... Copy, then clean.
+\t               list|ls ......... List existing timestamped
+\t                                 copies of FILE.
+\tFILE ....... Path to file you want to rotate.
 arguments
 )
 
 readonly OPTIONS=$( cat << options
-\t-p (path) PATH ........ Path to destination directory where
-\t                        copies will be written/removed
-\t                        (default: ´./´).
-\t-m (mode) D.M.Y.A ..... Retention mode for clean, more info
-\t                        below (default: ´0.0.0.64´).
-\t-f (force) ............ Never prompt. Apply force to cp and
-\t                        rm commands.
-\t-r (recursive) ........ Apply recursive to cp and rm
-\t                        commands.
-\t-v (verbose) .......... More output.
-\t-d (dry-run) .......... Do not actually execute commands.
-\t-c (color) ............ Use color in output.
-\t-V (version) .......... Print version and exit.
-\t-h (help) ............. Print help and exit.
+\t-p (path) PATH ....... Path to destination directory where
+\t                       copies will be written/removed
+\t                       (default: ´./´).
+\t-m (mode) D.M.Y.A .... Retention mode for clean, more info
+\t                       below (default: ´0.0.0.64´).
+\t-f (force) ........... Never prompt. Apply force to cp and
+\t                       rm commands.
+\t-r (recursive) ....... Apply recursive to cp and rm
+\t                       commands.
+\t-v (verbose) ......... More output.
+\t-d (dry-run) ......... Do not actually execute commands.
+\t-c (color) ........... Use color in output.
+\t-V (version) ......... Print version and exit.
+\t-h (help) ............ Print help and exit.
 options
 )
 
@@ -142,8 +140,8 @@ readonly RETENTIONMODE=$(cat << retentionmode
 \t           this number. To skip this step choose ´0´.
 \t
 \tExamples:
-\t  0.0.0.64 .... Just keep up to 64 copies, regardless when they
-\t                where written. This is the default.
+\t  0.0.0.64 .... Just keep up to 64 copies, regardless of their
+\t                timestamps. This is the default.
 \t  2.4.8.0 ..... If more than two copies with todays timestamp
 \t                  exist: Delete the oldest ones until only two
 \t                  remain.
