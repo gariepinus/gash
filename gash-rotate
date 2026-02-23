@@ -334,7 +334,6 @@ if $LIST; then
 	ls_opts="-d"
 	if $GASHOPT_VERBOSE; then
 		ls_opts="$ls_opts -l"
-		#exec_opts="-v"
 	fi
 	if $GASHOPT_COLOR; then
 		ls_opts="$ls_opts --color=always"
