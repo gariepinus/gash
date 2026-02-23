@@ -331,14 +331,15 @@ fi
 ##
 if $LIST; then
 	gash-echo "DEBUG" "======[ List ]======"
+	ls_opts="-d"
 	if $GASHOPT_VERBOSE; then
-		readonly LS="ls -l -d"
-		readonly EXEC="gash-exec -v"
-	else
-		readonly LS="ls -d"
-		readonly EXEC="gash-exec -o -l DEBUG"
+		ls_opts="$ls_opts -l"
+		#exec_opts="-v"
 	fi
-	$EXEC "$LS $TARGET*$FILEEXTENSION" "Listing existing copies"
+	if $GASHOPT_COLOR; then
+		ls_opts="$ls_opts --color=always"
+	fi
+	ls $ls_opts $TARGET*$FILEEXTENSION
 	RETURN_VALUE=$?
 fi
 
