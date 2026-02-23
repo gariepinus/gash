@@ -22,6 +22,10 @@ function info_and_exit() {
 # Will be skipped if `-f` option is
 # active.
 #
+# Parameters:
+#  $1 (return_value) Value exit will
+#     return with if user dosen't
+#     confirm (default: `0`).
 # Outputs:
 #  Prompt message
 #  or nothing if `-f` is active
@@ -33,7 +37,8 @@ function ask_for_continue() {
 			[yY][eE][sS]|[yY])
 				;;
 			*)
-				exit 0
+				[[ -z "$1" ]] && return_value=0
+				exit $return_value
 				;;
 		esac
 	fi
@@ -80,8 +85,9 @@ function clean() {
 			done
 			gash-exec "rm $OPTS $rmlist" "Removing $difference copies of '$FILENAMEFULL'"
 			if [[ $? -ne 0 ]]; then
-				gash-echo "WARN" "Failed to remove copies of '$FILENAMEFULL'"
-				ask_for_continue
+				gash-echo "ERROR" "Failed to remove copies of '$FILENAMEFULL'"
+				RETURN_VALUE=1
+				ask_for_continue 1
 			fi
 			RETAINED="$(($count-$difference))"
 		else
@@ -208,6 +214,7 @@ DESTINATION="./"
 MODE="0.0.0.64"
 FORCE=false
 OPTS="-v"
+RETURN_VALUE=0
 
 ##
 ## Options
@@ -333,6 +340,7 @@ if $LIST; then
 		readonly EXEC="gash-exec -o -l DEBUG"
 	fi
 	$EXEC "$LS $TARGET*$FILEEXTENSION" "Listing existing copies"
+	RETURN_VALUE=$?
 fi
 
 ##
@@ -341,9 +349,10 @@ fi
 if $COPY; then
 	gash-echo "DEBUG" "======[ Copy ]======"
 	gash-exec "cp $OPTS $FILEPATH $TARGET$(date +%Y%m%d%H%M%S)$FILEEXTENSION" "Writing timestamped copy of '$FILENAMEFULL'"
-	if [[ $? -ne 0 ]] && $CLEAN; then
-		gash-echo "WARN" "Failed to write copy of '$FILENAMEFULL'"
-		ask_for_continue
+	RETURN_VALUE=$?
+	if [[ $RETURN_VALUE -ne 0 ]] && $CLEAN; then
+		gash-echo "ERROR" "Failed to write copy of '$FILENAMEFULL'"
+		ask_for_continue $RETURN_VALUE
 	fi
 fi
 
@@ -381,4 +390,4 @@ fi
 ## Done
 ##
 gash-echo "DEBUG" "======[ Done ]======"
-exit 0
+exit $RETURN_VALUE
