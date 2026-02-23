@@ -18,7 +18,7 @@ function info_and_exit() {
 
 #######################################
 # Prompt for user conformation. Exit
-# with one unless input is y or yes.
+# with 0, unless input is y or yes.
 # Will be skipped if `-f` option is
 # active.
 #
@@ -48,7 +48,7 @@ function ask_for_continue() {
 #   $1 (targets) path to copies that
 #      will be counted and possibly
 #      removed
-#   $2 (limit) maximum number of cobies
+#   $2 (limit) maximum number of coipes
 #      that will be kept
 # Outputs:
 #   Several messages with execution
@@ -363,20 +363,16 @@ if $CLEAN; then
 	readonly Y=$(cut -d '.' -f3 <<< $MODE)
 	readonly A=$(cut -d '.' -f4 <<< $MODE)
 
-	# Step 1: Day
 	RETAINED=0
 	gash-echo "DEBUG" "## Step 1: Day   [retention limit ´$D´]"
 	clean "$TARGET$(date +%Y%m%d)*$FILEEXTENSION" $D
 
-	# Step 2: Month
 	gash-echo "DEBUG" "## Step 2: Month [retention limit ´$M´]"
 	clean "$TARGET$(date +%Y%m)*$FILEEXTENSION" $M
 	
-	# Step 3: Year
 	gash-echo "DEBUG" "## Step 3: Year  [retention limit ´$Y´]"
 	clean "$TARGET$(date +%Y)*$FILEEXTENSION" $Y
 
-	# Step 4: All
 	gash-echo "DEBUG" "## Step 4: All   [retention limit ´$A´]"
 	clean "$TARGET*$FILEEXTENSION" $A
 fi
