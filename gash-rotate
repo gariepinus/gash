@@ -206,9 +206,8 @@ help
 [[ -z "$GASHOPT_TIMESTAMP" ]] && export GASHOPT_TIMESTAMP=false
 [[ -z "$GASHOPT_COLOR" ]] && export GASHOPT_COLOR=false
 [[ -z "$GASHOPT_DRYRUN" ]] && export GASHOPT_DRYRUN=false
-
-export GASHOPT_VERBOSE="false"
-export GASHOPT_LOGLEVEL="INFO"
+[[ -z "$GASHOPT_VERBOSE" ]] && export GASHOPT_VERBOSE=false
+[[ -z "$GASHOPT_LOGLEVEL" ]] && export GASHOPT_LOGLEVEL="INFO"
 DESTINATION="./"
 MODE="0.0.0.64"
 FORCE=false
@@ -371,6 +370,7 @@ if $REMOVE; then
 	readonly Y=$(cut -d '.' -f3 <<< $MODE)
 	readonly A=$(cut -d '.' -f4 <<< $MODE)
 
+	# Remove old copies
 	RETAINED=0
 	gash-echo "DEBUG" "## Step 1: Day   [retention limit ´$D´]"
 	remove "$TARGET$(date +%Y%m%d)*$FILEEXTENSION" $D
