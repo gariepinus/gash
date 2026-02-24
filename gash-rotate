@@ -96,6 +96,18 @@ function remove() {
 	fi
 }
 
+#######################################
+#
+#######################################
+function count() {
+	targets=$(gash-exec -l "DEBUG" -o "ls -d $1" "Looking for copies")
+	if [[ $? -ne 0 ]]; then
+		echo 0
+	else
+		echo $targets | wc -w
+	fi
+}
+
 ##
 ## Constants
 ##
@@ -112,11 +124,12 @@ description
 
 readonly ARGUMENTS=$( cat << arguments
 \tCOMMAND .... Command to be executed (default: ´copy´).
-\t               copy|cp .......... Write timestamped copy of FILE.
+\t               copy|cp .......... Write timestamped copy of
+\t                                  FILE.
 \t               remove|rm......... Remove old copies of FILE.
 \t               copyremove|cprm .. Copy, then remove.
-\t               list|ls .......... List existing timestamped
-\t                                  copies of FILE.
+\t               list|ls .......... List existing copies.
+\t               stats|st ......... Count existing copies.
 \tFILE ....... Path to file you want to rotate.
 arguments
 )
@@ -279,26 +292,26 @@ fi
 ##
 ## Evaluate COMMAND
 ##
+COPY=false
+REMOVE=false
+LIST=false
+STATS=false
 case "$COMMAND" in
 	("copy"|"cp")
-		readonly COPY=true
-		readonly REMOVE=false
-		readonly LIST=false
+		COPY=true
 		;;
 	("remove"|"rm")
-		readonly COPY=false
-		readonly REMOVE=true
-		readonly LIST=false
+		REMOVE=true
 		;;
 	("copyremove"|"cprm")
-		readonly COPY=true
-		readonly REMOVE=true
-		readonly LIST=false
+		COPY=true
+		REMOVE=true
 		;;
 	("list"|"ls")
-		readonly COPY=false
-		readonly REMOVE=false
-		readonly LIST=true
+		LIST=true
+		;;
+	("stats"|"st")
+		STATS=true
 		;;
 	(*)
 		echo -e "$0: Unkown command." 1>&2
@@ -383,6 +396,38 @@ if $REMOVE; then
 
 	gash-echo "DEBUG" "## Step 4: All   [retention limit ´$A´]"
 	remove "$TARGET*$FILEEXTENSION" $A
+fi
+
+##
+## Stats
+##
+if $STATS; then
+	gash-echo "DEBUG" "======[ Stats ]======"
+	readonly D=$(count "$TARGET$(date +%Y%m%d)*$FILEEXTENSION")
+	readonly M=$(count "$TARGET$(date +%Y%m)*$FILEEXTENSION")
+	readonly Y=$(count "$TARGET$(date +%Y)*$FILEEXTENSION")
+	readonly A=$(count "$TARGET*$FILEEXTENSION")
+
+	if $GASHOPT_VERBOSE; then
+		m_minus_d=$(($M-$D))
+		y_minus_dm=$(($Y-($D+$m_minus_d)))
+		a_minus_dmy=$(($A-($D+$m_minus_d+$y_minus_dm)))
+
+		output="| ; | Today; | This Month; | This year; | Overall\n"
+		output="$output| ------------------------; | -----; | ----------; | ---------; | -------\n"
+		output="$output| Including previous steps; | $D; | $M; | $Y; | $A\n"
+		output="$output| Excluding previous steps; | $D; | $m_minus_d; | $y_minus_dm; | $a_minus_dmy\n"
+
+		gash-echo "INFO" "## Existing copies:\n\n$(echo -en "$output" | column -t -s ";" -x)\n\n"
+	else
+		gash-echo "INFO" "Found $A copies of '$FILENAMEFULL' ($D with todays timestamp, $M with this months, $Y with this years)."
+	fi
+
+	if [[ $A -eq 0 ]]; then
+		RETURN_VALUE=1
+	else
+		RETURN_VALUE=0
+	fi
 fi
 
 ##
