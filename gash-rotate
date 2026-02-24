@@ -145,6 +145,7 @@ readonly OPTIONS=$( cat << options
 \t-r (recursive) ....... Apply recursive to cp and rm
 \t                       commands.
 \t-v (verbose) ......... More output.
+\t-D (debug) ........... Include debug messages in output.
 \t-d (dry-run) ......... Do not actually execute commands.
 \t-c (color) ........... Use color in output.
 \t-V (version) ......... Print version and exit.
@@ -230,7 +231,7 @@ RETURN_VALUE=0
 ##
 ## Options
 ##
-while getopts "p:m:frvdctVh" opt; do
+while getopts "p:m:frvDdctVh" opt; do
 	case "$opt" in
 		p)
 			export GASHOPT_GR_PATH="$OPTARG"
@@ -247,6 +248,8 @@ while getopts "p:m:frvdctVh" opt; do
 			;;
 		v)
 			export GASHOPT_VERBOSE=true
+			;;
+		D)
 			export GASHOPT_LOGLEVEL="DEBUG"
 			;;
 		d)
@@ -418,7 +421,7 @@ if $STATS; then
 		output="$output| Including previous steps; | $D; | $M; | $Y; | $A\n"
 		output="$output| Excluding previous steps; | $D; | $m_minus_d; | $y_minus_dm; | $a_minus_dmy\n"
 
-		gash-echo "INFO" "## Existing copies:\n\n$(echo -en "$output" | column -t -s ";" -x)\n\n"
+		gash-echo "INFO" "Existing copies:\n\n$(echo -en "$output" | column -t -s ";" -x)\n\n"
 	else
 		gash-echo "INFO" "Found $A copies of '$FILENAMEFULL' ($D with todays timestamp, $M with this months, $Y with this years)."
 	fi
