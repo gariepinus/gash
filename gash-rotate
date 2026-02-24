@@ -194,6 +194,32 @@ readonly RETENTIONMODE=$(cat << retentionmode
 retentionmode
 )
 
+readonly ENVIROMENT_VARIABLES=$( cat << enviroment_variables
+\tGASHOPT_TIMESTAMP ..... true|false (default: false)
+\t                        Include iso 8601 timestamp in output lines.
+\t                        Can be overwritten by ´-t´ option.
+\tGASHOPT_COLOR ......... true|false (default: false)
+\t                        Use color in output. Can be overwritten by
+\t                        ´-c´ option.
+\tGASHOPT_DRYRUN ........ true|false (default: false)
+\t                        Don't execute commands. Can be overwritten by
+\t                        ´-d´ option.
+\tGASHOPT_VERBOSE ....... true|false (default: false)
+\t                        More output. Can be overwritten by ´-v´
+\t                        option.
+\tGASHOPT_LOGLEVEL ...... ERROR|WARN|INFO|DEBUG (detault: INFO)
+\t                        Only messages with at least the choosen level
+\t                        will be written to output. Can be overwritten
+\t                        by ´-D´ option.
+\tGASHOPT_GR_PATH ....... PATH (default: ./)
+\t                        Path where copies of FILE will be written or
+\t                        removed. Can be overwritten by ´-p´ option.
+\tGASHOPT_GR_MODE ....... Num.Num.Num.Num (default: 0.0.0.64)
+\t                        Retention mode for remove. Can be overwritten
+\t                        by ´-m´ option.
+enviroment_variables
+)
+
 readonly HELP=$( cat << help
 $NAME/v$VERSION
 
@@ -211,6 +237,8 @@ $OPTIONS
 Retention mode:
 $RETENTIONMODE
 
+Enviroment variables:
+$ENVIROMENT_VARIABLES
 help
 )
 
