@@ -221,8 +221,8 @@ help
 [[ -z "$GASHOPT_DRYRUN" ]] && export GASHOPT_DRYRUN=false
 [[ -z "$GASHOPT_VERBOSE" ]] && export GASHOPT_VERBOSE=false
 [[ -z "$GASHOPT_LOGLEVEL" ]] && export GASHOPT_LOGLEVEL="INFO"
-DESTINATION="./"
-MODE="0.0.0.64"
+[[ -z "$GASHOPT_GR_PATH" ]] && export GASHOPT_GR_PATH="./"
+[[ -z "$GASHOPT_GR_MODE" ]] && export GASHOPT_GR_MODE="0.0.0.64"
 FORCE=false
 OPTS="-v"
 RETURN_VALUE=0
@@ -233,10 +233,10 @@ RETURN_VALUE=0
 while getopts "p:m:frvdctVh" opt; do
 	case "$opt" in
 		p)
-			readonly DESTINATION="$OPTARG"
+			export GASHOPT_GR_PATH="$OPTARG"
 			;;
 		m)
-			readonly MODE="$OPTARG"
+			export GASHOPT_GR_MODE="$OPTARG"
 			;;
 		f)
 			readonly FORCE=true
@@ -324,7 +324,7 @@ esac
 ##
 readonly FILENAMEFULL=$(basename -- "$FILEPATH")
 readonly FILENAME="${FILENAMEFULL%.*}"
-readonly TARGET="${DESTINATION}${FILENAME}_gr"
+readonly TARGET="${GASHOPT_GR_PATH}${FILENAME}_gr"
 
 if [[ -d $FILEPATH ]]; then
 	FILEEXTENSION=""
@@ -373,15 +373,15 @@ fi
 if $REMOVE; then
 	gash-echo "DEBUG" "======[ Remove ]======"
 
-	# Evaluate MODE
-	if ! [[ $MODE =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+	# Evaluate mode
+	if ! [[ $GASHOPT_GR_MODE =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
 		gash-echo "ERROR" "Invalid retention mode." 1>&2
 		exit 1
 	fi
-	readonly D=$(cut -d '.' -f1 <<< $MODE)
-	readonly M=$(cut -d '.' -f2 <<< $MODE)
-	readonly Y=$(cut -d '.' -f3 <<< $MODE)
-	readonly A=$(cut -d '.' -f4 <<< $MODE)
+	readonly D=$(cut -d '.' -f1 <<< $GASHOPT_GR_MODE)
+	readonly M=$(cut -d '.' -f2 <<< $GASHOPT_GR_MODE)
+	readonly Y=$(cut -d '.' -f3 <<< $GASHOPT_GR_MODE)
+	readonly A=$(cut -d '.' -f4 <<< $GASHOPT_GR_MODE)
 
 	# Remove old copies
 	RETAINED=0
