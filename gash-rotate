@@ -361,7 +361,7 @@ if $COPY; then
 	gash-echo "DEBUG" "======[ Copy ]======"
 	gash-exec "cp $OPTS $FILEPATH $TARGET$(date +%Y%m%d%H%M%S)$FILEEXTENSION" "Writing timestamped copy of '$FILENAMEFULL'"
 	RETURN_VALUE=$?
-	if [[ $RETURN_VALUE -ne 0 ]] && $CLEAN; then
+	if [[ $RETURN_VALUE -ne 0 ]] && $REMOVE; then
 		gash-echo "ERROR" "Failed to write copy of '$FILENAMEFULL'"
 		ask_for_continue $RETURN_VALUE
 	fi
